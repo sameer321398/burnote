@@ -368,9 +368,9 @@
                 resetAllHolds();
             }, { passive: true });
 
-            // 3+ fingers = suspicious, instant hide
+            // 4+ fingers = suspicious, but allow 3 for scrolling while holding
             document.addEventListener('touchstart', (e) => {
-                if (e.touches.length >= 3) {
+                if (e.touches.length >= 4) {
                     shield.classList.add('on');
                     msgText.classList.remove('visible');
                     resetAllHolds();
