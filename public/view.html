@@ -5,12 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Message</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
 
         * {
             -webkit-user-select: none !important;
-            -moz-user-select: none !important;
-            -ms-user-select: none !important;
             user-select: none !important;
             -webkit-touch-callout: none !important;
             -webkit-tap-highlight-color: transparent;
@@ -26,15 +24,15 @@
             background: #000;
             color: #ccc;
             font-family: 'Inter', -apple-system, sans-serif;
-            touch-action: none; /* No scrolling needed */
+            touch-action: none;
         }
 
         body {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 24px;
+            justify-content: flex-start; /* Start message from top area */
+            padding: 60px 24px 0;
         }
 
         /* Black shield */
@@ -47,44 +45,54 @@
         }
         #shield.on { display: block; }
 
-        /* Container */
-        .container {
-            max-width: 520px;
+        /* Message Card - Glassy look */
+        .msg-card {
+            max-width: 500px;
             width: 100%;
-            text-align: center;
-            position: relative;
-            z-index: 2;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 24px;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.2s ease;
         }
 
-        /* Loader */
-        .loader {
-            width: 20px; height: 20px;
-            border: 2px solid rgba(255,255,255,0.06);
-            border-top-color: #444;
-            border-radius: 50%;
-            animation: spin 0.6s linear infinite;
-            margin: 0 auto;
+        .msg-card.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* States */
-        .state { display: none; }
-        .state.active { display: block; }
+        .msg-text {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: #d0d0d0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            text-align: left;
+            width: 100%;
+        }
 
-        /* ---- Two-thumb hold zones ---- */
+        /* Thumb zones at the very bottom */
         .hold-zones {
             position: fixed;
-            inset: 0;
-            display: none;
-            z-index: 5;
+            bottom: 40px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-around;
+            padding: 0 30px;
+            z-index: 100;
         }
-        .hold-zones.active { display: block; }
 
         .zone {
-            position: absolute;
-            width: 90px;
-            height: 90px;
-            border: 2px dashed rgba(255,255,255,0.06);
+            width: 85px;
+            height: 85px;
+            border: 2px dashed rgba(255,255,255,0.08);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -92,68 +100,44 @@
             transition: all 0.2s;
         }
 
-        .zone-left {
-            bottom: 40px;
-            left: 30px;
-        }
-
-        .zone-right {
-            bottom: 40px;
-            right: 30px;
-        }
-
         .zone.held {
             border-color: rgba(255,255,255,0.2);
-            background: rgba(255,255,255,0.03);
+            background: rgba(255,255,255,0.04);
+            transform: scale(0.95);
         }
 
         .zone-dot {
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
-            background: rgba(255,255,255,0.08);
-            transition: all 0.2s;
+            background: rgba(255,255,255,0.1);
         }
 
         .zone.held .zone-dot {
-            background: rgba(255,255,255,0.25);
-            box-shadow: 0 0 12px rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.3);
+            box-shadow: 0 0 15px rgba(255,255,255,0.1);
         }
 
-        /* Hold instruction */
         .hold-hint {
+            position: fixed;
+            bottom: 140px;
+            width: 100%;
+            text-align: center;
             color: #222;
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             letter-spacing: 1px;
             text-transform: uppercase;
-            position: fixed;
-            bottom: 150px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            z-index: 6;
         }
 
-        /* Message */
-        .msg-text {
-            font-size: 1.15rem;
-            line-height: 1.8;
-            color: #d0d0d0;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            text-align: left;
-            opacity: 0;
-            transition: opacity 0.15s ease;
-            pointer-events: none;
-            position: relative;
-            z-index: 10;
-        }
-        .msg-text.visible { opacity: 1; }
+        /* Gone / Error states */
+        .state { display: none; }
+        .state.active { display: block; }
+        .gone-text { color: #333; font-size: 0.85rem; margin-top: 100px; text-align: center; }
 
-        /* Gone */
-        .gone-text {
-            color: #222;
-            font-size: 0.8rem;
+        /* Desktop: auto-show */
+        @media (hover: hover) and (pointer: fine) {
+            .hold-zones, .hold-hint { display: none !important; }
+            .msg-card { opacity: 1; transform: none; }
         }
 
         /* Password */
@@ -163,64 +147,53 @@
             color: #ccc;
             padding: 12px 16px;
             font-family: inherit;
-            font-size: 0.9rem;
-            border-radius: 6px;
+            border-radius: 8px;
             width: 220px;
-            outline: none;
             text-align: center;
+            outline: none;
         }
-        #pwWrap input:focus { border-color: rgba(255,255,255,0.15); }
-        #pwWrap input::placeholder { color: #333; }
         #pwWrap button {
             display: block;
-            margin: 12px auto 0;
-            background: none;
+            margin: 15px auto 0;
+            background: rgba(255,255,255,0.06);
             border: 1px solid rgba(255,255,255,0.08);
-            color: #666;
-            padding: 8px 24px;
-            font-family: inherit;
-            font-size: 0.8rem;
-            border-radius: 6px;
+            color: #999;
+            padding: 10px 30px;
+            border-radius: 8px;
             cursor: pointer;
-        }
-        #pwWrap button:hover { border-color: rgba(255,255,255,0.15); color: #999; }
-        #errMsg { color: #663333; font-size: 0.75rem; margin-top: 8px; display: none; }
-
-        /* Desktop: no hold needed */
-        @media (hover: hover) and (pointer: fine) {
-            .hold-zones, .hold-hint { display: none !important; }
-            .msg-text.desktop-show { opacity: 1; }
         }
     </style>
 </head>
 <body>
     <div id="shield"></div>
 
-    <!-- Two thumb zones (mobile only) -->
-    <div class="hold-zones" id="holdZones">
-        <div class="zone zone-left" id="zoneLeft"><div class="zone-dot"></div></div>
-        <div class="zone zone-right" id="zoneRight"><div class="zone-dot"></div></div>
-    </div>
-    <div class="hold-hint" id="holdHint" style="display:none;">hold both circles to read</div>
+    <div class="state active" id="stateLoading"></div>
 
-    <div class="container">
-        <div class="state active" id="stateLoading"><div class="loader"></div></div>
-
-        <div class="state" id="stateMessage">
+    <!-- Message Display Area -->
+    <div class="state" id="stateMessage">
+        <div class="msg-card" id="msgCard">
             <div class="msg-text" id="msgText"></div>
         </div>
+        <div class="hold-hint" id="holdHint">hold both circles at the bottom</div>
+    </div>
 
-        <div class="state" id="stateGone">
-            <div class="gone-text">this message no longer exists</div>
-        </div>
+    <!-- Gone -->
+    <div class="state" id="stateGone">
+        <div class="gone-text">this message no longer exists</div>
+    </div>
 
-        <div class="state" id="statePw">
-            <div id="pwWrap">
-                <input type="password" id="pw" placeholder="password">
-                <button onclick="submitPw()">open</button>
-                <div id="errMsg">incorrect password</div>
-            </div>
+    <!-- Password -->
+    <div class="state" id="statePw">
+        <div id="pwWrap">
+            <input type="password" id="pw" placeholder="password">
+            <button onclick="submitPw()">unlock</button>
         </div>
+    </div>
+
+    <!-- Controls (Mobile only) -->
+    <div class="hold-zones" id="holdZones" style="display:none;">
+        <div class="zone" id="zoneLeft"><div class="zone-dot"></div></div>
+        <div class="zone" id="zoneRight"><div class="zone-dot"></div></div>
     </div>
 
     <script>
@@ -230,28 +203,16 @@
         let destroyed = false;
         let messageLoaded = false;
 
-        // ====== ANTI-SCREENSHOT ======
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden && messageLoaded) killMessage();
-        });
+        // Security
+        document.addEventListener('visibilitychange', () => { if (document.hidden && messageLoaded) killMessage(); });
         window.addEventListener('blur', () => { if (messageLoaded) killMessage(); });
         window.addEventListener('pagehide', () => killMessage());
         window.addEventListener('beforeunload', () => killMessage());
-        document.addEventListener('contextmenu', e => e.preventDefault());
-        document.addEventListener('keydown', e => {
-            if (e.key === 'PrintScreen' || e.key === 'F12' ||
-                (e.ctrlKey && ['p','s','c','u','a'].includes(e.key.toLowerCase())) ||
-                (e.ctrlKey && e.shiftKey)) {
-                e.preventDefault();
-                killMessage();
-            }
-        });
-        document.addEventListener('dragstart', e => e.preventDefault());
 
-        // ====== TWO-THUMB HOLD (mobile) ======
+        // Hold Logic
         const zoneLeft = document.getElementById('zoneLeft');
         const zoneRight = document.getElementById('zoneRight');
-        const holdZones = document.getElementById('holdZones');
+        const msgCard = document.getElementById('msgCard');
         const holdHint = document.getElementById('holdHint');
         const msgText = document.getElementById('msgText');
 
@@ -259,7 +220,6 @@
         let rightHeld = false;
         let activeTouches = {};
 
-        // STRICT zone check — no expand, must be exactly inside the circle
         function isInsideZone(touch, zone) {
             const rect = zone.getBoundingClientRect();
             const centerX = rect.left + rect.width / 2;
@@ -267,137 +227,89 @@
             const radius = rect.width / 2;
             const dx = touch.clientX - centerX;
             const dy = touch.clientY - centerY;
-            // Must be strictly inside the circle (using circle math)
-            return (dx * dx + dy * dy) <= (radius * radius);
+            // 20px Grace area (buffer) so it's not too sensitive
+            const buffer = 20;
+            return (dx * dx + dy * dy) <= ((radius + buffer) * (radius + buffer));
         }
 
         function updateHoldState() {
             if (destroyed || !messageLoaded) return;
-
             if (leftHeld && rightHeld) {
-                msgText.classList.add('visible');
-                holdHint.style.display = 'none';
+                msgCard.classList.add('visible');
+                holdHint.style.opacity = '0';
             } else {
-                msgText.classList.remove('visible');
-                if (messageLoaded && !destroyed) {
-                    holdHint.style.display = 'block';
-                }
+                msgCard.classList.remove('visible');
+                holdHint.style.opacity = '1';
             }
         }
 
-        function resetAllHolds() {
-            leftHeld = false;
-            rightHeld = false;
-            zoneLeft.classList.remove('held');
-            zoneRight.classList.remove('held');
-            activeTouches = {};
-            updateHoldState();
-        }
-
         if (isTouchDevice) {
-            // Touch START — check if finger lands inside a zone
             document.addEventListener('touchstart', (e) => {
                 if (!messageLoaded || destroyed) return;
                 e.preventDefault();
-
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     const t = e.changedTouches[i];
                     if (isInsideZone(t, zoneLeft)) {
-                        leftHeld = true;
-                        zoneLeft.classList.add('held');
+                        leftHeld = true; zoneLeft.classList.add('held');
                         activeTouches[t.identifier] = 'left';
                     }
                     if (isInsideZone(t, zoneRight)) {
-                        rightHeld = true;
-                        zoneRight.classList.add('held');
+                        rightHeld = true; zoneRight.classList.add('held');
                         activeTouches[t.identifier] = 'right';
                     }
                 }
                 updateHoldState();
             }, { passive: false });
 
-            // Touch MOVE — strictly check if finger is still inside its zone
             document.addEventListener('touchmove', (e) => {
                 if (!messageLoaded || destroyed) return;
-                e.preventDefault();
-
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     const t = e.changedTouches[i];
-                    const assignedZone = activeTouches[t.identifier];
-
-                    if (assignedZone === 'left') {
-                        if (!isInsideZone(t, zoneLeft)) {
-                            // Finger moved outside left circle — hide instantly
-                            leftHeld = false;
-                            zoneLeft.classList.remove('held');
-                            delete activeTouches[t.identifier];
-                        }
+                    if (activeTouches[t.identifier] === 'left' && !isInsideZone(t, zoneLeft)) {
+                        leftHeld = false; zoneLeft.classList.remove('held'); delete activeTouches[t.identifier];
                     }
-                    if (assignedZone === 'right') {
-                        if (!isInsideZone(t, zoneRight)) {
-                            // Finger moved outside right circle — hide instantly
-                            rightHeld = false;
-                            zoneRight.classList.remove('held');
-                            delete activeTouches[t.identifier];
-                        }
+                    if (activeTouches[t.identifier] === 'right' && !isInsideZone(t, zoneRight)) {
+                        rightHeld = false; zoneRight.classList.remove('held'); delete activeTouches[t.identifier];
                     }
                 }
                 updateHoldState();
             }, { passive: false });
 
-            // Touch END — finger lifted
             document.addEventListener('touchend', (e) => {
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     const t = e.changedTouches[i];
-                    const zone = activeTouches[t.identifier];
-                    if (zone === 'left') {
-                        leftHeld = false;
-                        zoneLeft.classList.remove('held');
-                    }
-                    if (zone === 'right') {
-                        rightHeld = false;
-                        zoneRight.classList.remove('held');
-                    }
+                    if (activeTouches[t.identifier] === 'left') { leftHeld = false; zoneLeft.classList.remove('held'); }
+                    if (activeTouches[t.identifier] === 'right') { rightHeld = false; zoneRight.classList.remove('held'); }
                     delete activeTouches[t.identifier];
                 }
                 updateHoldState();
-            }, { passive: true });
+            });
 
-            // Touch CANCEL
             document.addEventListener('touchcancel', () => {
-                resetAllHolds();
-            }, { passive: true });
+                leftHeld = false; rightHeld = false;
+                zoneLeft.classList.remove('held'); zoneRight.classList.remove('held');
+                activeTouches = {}; updateHoldState();
+            });
+        }
 
-            // 4+ fingers = suspicious, but allow 3 for scrolling while holding
-            document.addEventListener('touchstart', (e) => {
-                if (e.touches.length >= 4) {
-                    shield.classList.add('on');
-                    msgText.classList.remove('visible');
-                    resetAllHolds();
-                    setTimeout(() => { if (!destroyed) shield.classList.remove('on'); }, 1000);
+        async function loadMessage(password) {
+            try {
+                const res = await fetch(`/api/messages/${msgId}/reveal`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: password || '' })
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    if (data.error && data.error.includes('password')) { showState('statePw'); return; }
+                    showState('stateGone'); return;
                 }
-            }, { passive: true });
-        }
-
-        // ====== DESKTOP: auto-show ======
-        function setupDesktop() {
-            if (!isTouchDevice) {
-                msgText.classList.add('desktop-show');
-            }
-        }
-
-        // ====== KILL MESSAGE ======
-        function killMessage() {
-            if (destroyed) return;
-            destroyed = true;
-            msgText.classList.remove('visible');
-            const msg = document.getElementById('msgText');
-            if (msg) { msg.textContent = ''; msg.remove(); }
-            holdZones.classList.remove('active');
-            holdHint.style.display = 'none';
-            document.querySelectorAll('.state').forEach(s => s.classList.remove('active'));
-            document.getElementById('stateGone').classList.add('active');
-            shield.classList.remove('on');
+                msgText.textContent = data.content;
+                messageLoaded = true;
+                showState('stateMessage');
+                if (isTouchDevice) { document.getElementById('holdZones').style.display = 'flex'; }
+                else { msgCard.classList.add('visible'); }
+            } catch { showState('stateGone'); }
         }
 
         function showState(id) {
@@ -405,70 +317,18 @@
             document.getElementById(id).classList.add('active');
         }
 
-        // ====== LOAD MESSAGE ======
-        async function loadMessage(password) {
-            try {
-                const checkRes = await fetch(`/api/messages/${msgId}/check`);
-                const checkData = await checkRes.json();
-
-                if (!checkData.exists) { showState('stateGone'); return; }
-
-                if (checkData.hasPassword && !password) {
-                    showState('statePw');
-                    return;
-                }
-
-                const res = await fetch(`/api/messages/${msgId}/reveal`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password: password || '' })
-                });
-
-                const data = await res.json();
-
-                if (!res.ok) {
-                    if (data.error && (data.error.includes('password') || data.error.includes('Invalid'))) {
-                        showState('statePw');
-                        document.getElementById('errMsg').style.display = 'block';
-                        document.getElementById('pw').value = '';
-                        return;
-                    }
-                    showState('stateGone');
-                    return;
-                }
-
-                // Load message
-                msgText.textContent = data.content;
-                messageLoaded = true;
-                showState('stateMessage');
-
-                if (isTouchDevice) {
-                    // Show hold zones on mobile
-                    holdZones.classList.add('active');
-                    holdHint.style.display = 'block';
-                } else {
-                    setupDesktop();
-                }
-
-            } catch {
-                showState('stateGone');
-            }
-        }
-
         function submitPw() {
             const pw = document.getElementById('pw').value;
-            if (!pw) return;
-            showState('stateLoading');
-            document.getElementById('errMsg').style.display = 'none';
-            loadMessage(pw);
+            if (pw) { showState('stateLoading'); loadMessage(pw); }
         }
 
-        document.getElementById('pw').addEventListener('keydown', e => {
-            if (e.key === 'Enter') submitPw();
-        });
+        function killMessage() {
+            if (destroyed) return;
+            destroyed = true;
+            document.body.innerHTML = '<div class="gone-text">this message no longer exists</div>';
+        }
 
-        // ====== INIT ======
-        if (msgId) { loadMessage(); } else { showState('stateGone'); }
+        if (msgId) loadMessage();
     </script>
 </body>
 </html>
