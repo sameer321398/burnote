@@ -31,8 +31,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start; /* Start message from top area */
-            padding: 60px 24px 0;
+            justify-content: flex-start; /* Keeps message box at top */
+            padding: 80px 20px 0; /* Huge padding at top */
+            background: #000;
         }
 
         /* Black shield */
@@ -45,21 +46,22 @@
         }
         #shield.on { display: block; }
 
-        /* Message Card - Glassy look */
+        /* Message Box - Distinct and separated from thumbs */
         .msg-card {
-            max-width: 500px;
+            max-width: 460px;
             width: 100%;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 16px;
-            padding: 24px;
-            min-height: 120px;
+            min-height: 180px; /* Bigger box */
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.12); /* Brighter border for 'box' look */
+            border-radius: 20px;
+            padding: 30px;
             display: flex;
-            align-items: center;
-            justify-content: center;
+            align-items: flex-start; /* Text starts at top of box */
+            justify-content: flex-start;
             opacity: 0;
             transform: translateY(10px);
-            transition: all 0.2s ease;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 30px rgba(0,0,0,0.5); /* Shadow to stand out */
         }
 
         .msg-card.visible {
@@ -70,34 +72,33 @@
         .msg-text {
             font-size: 1.1rem;
             line-height: 1.7;
-            color: #d0d0d0;
+            color: #ececec;
             white-space: pre-wrap;
             word-wrap: break-word;
-            text-align: left;
             width: 100%;
         }
 
-        /* Thumb zones at the very bottom */
+        /* Thumb zones - Locked to absolute bottom */
         .hold-zones {
             position: fixed;
-            bottom: 40px;
+            bottom: 30px; /* Far from top box */
             left: 0;
             right: 0;
             display: flex;
             justify-content: space-around;
-            padding: 0 30px;
+            padding: 0 40px;
             z-index: 100;
         }
 
         .zone {
-            width: 85px;
-            height: 85px;
-            border: 2px dashed rgba(255,255,255,0.08);
+            width: 82px;
+            height: 82px;
+            border: 1px solid rgba(255,255,255,0.15); /* Solid line circles */
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
+            background: rgba(255,255,255,0.02);
         }
 
         .zone.held {
