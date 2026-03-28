@@ -21,20 +21,20 @@
         html, body {
             margin: 0;
             padding: 0;
-            height: 100%;
-            overflow: hidden;
+            min-height: 100%;
             background: #000;
             color: #ccc;
             font-family: 'Inter', -apple-system, sans-serif;
-            touch-action: none;
+            touch-action: pan-y; /* Allow vertical scroll */
+            overflow-x: hidden;
         }
 
         body {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 24px;
+            justify-content: flex-start; /* Start from top for scrolling */
+            padding: 40px 24px 180px; /* Extra padding at bottom for thumb zones */
         }
 
         /* Black shield */
