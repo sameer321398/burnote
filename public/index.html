@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="BurNote - Send self-destructing secret messages that vanish after being read. Secure, encrypted, and privacy-first.">
+    <meta name="theme-color" content="#0a0a0f">
+    <title>BurNote — Self-Destructing Messages</title>
+    <link rel="icon" href="/logo.png" type="image/png">
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-effects">
+        <div class="bg-orb bg-orb-1"></div>
+        <div class="bg-orb bg-orb-2"></div>
+        <div class="bg-orb bg-orb-3"></div>
+    </div>
+    <div class="bg-grid"></div>
+
+    <!-- Burn Animation Overlay -->
+    <div class="burn-animation" id="burnAnimation"></div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="app-container">
+        <!-- Navbar -->
+        <nav class="navbar">
+            <a class="nav-brand" onclick="showPage('create')" href="#">
+                <img src="/logo.png" alt="BurNote" class="nav-logo">
+                <div>
+                    <div class="nav-title">BurNote</div>
+                    <div class="nav-tagline">Read once. Gone forever.</div>
+                </div>
+            </a>
+            <div class="nav-actions">
+                <a class="nav-link" href="#" onclick="showPage('create')">Create</a>
+                <a class="nav-link" href="https://github.com" target="_blank">GitHub</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- ========== CREATE PAGE ========== -->
+            <div class="page active" id="page-create">
+                <div class="hero-badge">
+                    <span class="badge-dot"></span>
+                    End-to-end encrypted
+                </div>
+
+                <h1 class="hero-title">
+                    Send secrets that<br>
+                    <span class="gradient-text">self-destruct</span> 🔥
+                </h1>
+
+                <p class="hero-subtitle">
+                    Write a confidential message, get a one-time link. Once read, the message 
+                    is permanently destroyed — no traces, no copies.
+                </p>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">✍️</div>
+                        <div class="card-header-text">
+                            <h3>Compose Secret Message</h3>
+                            <p>Your message is encrypted before storage</p>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="messageInput">
+                            Secret Message
+                            <span class="char-count" id="charCount">0 / 10,000</span>
+                        </label>
+                        <textarea 
+                            class="form-textarea" 
+                            id="messageInput" 
+                            placeholder="Type your secret message here..."
+                            maxlength="10000"
+                        ></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="passwordInput">
+                            Password Protection (optional)
+                        </label>
+                        <input 
+                            type="password" 
+                            class="form-input" 
+                            id="passwordInput" 
+                            placeholder="Add a password for extra security"
+                        >
+                    </div>
+
+                    <div class="options-row">
+                        <div class="form-group">
+                            <label class="form-label" for="expirySelect">Self-destructs after</label>
+                            <select class="form-select" id="expirySelect">
+                                <option value="5">5 minutes</option>
+                                <option value="30">30 minutes</option>
+                                <option value="60">1 hour</option>
+                                <option value="360">6 hours</option>
+                                <option value="1440" selected>24 hours</option>
+                                <option value="4320">3 days</option>
+                                <option value="10080">7 days</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="viewsSelect">Max views</label>
+                            <select class="form-select" id="viewsSelect">
+                                <option value="1" selected>1 view (recommended)</option>
+                                <option value="2">2 views</option>
+                                <option value="3">3 views</option>
+                                <option value="5">5 views</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" id="createBtn" onclick="createMessage()">
+                        🔥 Burn & Create Link
+                    </button>
+
+                    <!-- Link Result (hidden initially) -->
+                    <div class="link-result" id="linkResult" style="display: none;">
+                        <div class="link-info">
+                            ⚠️ This link will only work once. Save it now!
+                        </div>
+
+                        <div class="link-box">
+                            <input type="text" id="linkOutput" readonly>
+                            <button class="btn btn-icon" onclick="copyLink()" title="Copy link">
+                                📋
+                            </button>
+                        </div>
+
+                        <div class="btn-group">
+                            <button class="btn btn-whatsapp" onclick="shareWhatsApp()">
+                                📱 Share on WhatsApp
+                            </button>
+                        </div>
+
+                        <div class="btn-group" style="margin-top: 0.5rem;">
+                            <button class="btn btn-secondary" onclick="createAnother()" style="flex:1;">
+                                ✨ Create Another
+                            </button>
+                            <button class="btn btn-danger" onclick="destroyNow()" style="flex:1;">
+                                💀 Destroy Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features -->
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon">🔐</div>
+                        <div class="feature-title">AES Encrypted</div>
+                        <div class="feature-desc">Military-grade encryption protects your message</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">💨</div>
+                        <div class="feature-title">Self-Destruct</div>
+                        <div class="feature-desc">Message vanishes after being read</div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🚫</div>
+                        <div class="feature-title">No Traces</div>
+                        <div class="feature-desc">Zero logs, zero storage after destruction</div>
+                    </div>
+                </div>
+
+                <!-- How it works -->
+                <div class="how-it-works">
+                    <h3>How it works</h3>
+                    <div class="steps">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-text">
+                                <strong>Write</strong>
+                                Type your secret message
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-text">
+                                <strong>Share</strong>
+                                Send the one-time link
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-text">
+                                <strong>Burn</strong>
+                                Message self-destructs
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== VIEW PAGE ========== -->
+            <div class="page" id="page-view">
+                <!-- Loading State -->
+                <div class="card view-card" id="viewLoading">
+                    <div class="view-icon warning">
+                        <div class="spinner"></div>
+                    </div>
+                    <h2 class="view-title">Loading...</h2>
+                    <p class="view-subtitle">Checking if this secret message still exists.</p>
+                </div>
+
+                <!-- Message Exists - Confirm View -->
+                <div class="card view-card" id="viewConfirm" style="display: none;">
+                    <div class="view-icon warning">🔥</div>
+                    <h2 class="view-title">Secret Message</h2>
+                    <p class="view-subtitle">
+                        Someone sent you a confidential message.<br>
+                        <strong>Warning:</strong> This message will be <strong>permanently destroyed</strong> after you read it.
+                    </p>
+
+                    <!-- Password field (shown only if needed) -->
+                    <div id="passwordField" style="display: none;">
+                        <div class="password-area">
+                            <input type="password" class="form-input" id="viewPassword" placeholder="Enter the password">
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" id="revealBtn" onclick="revealMessage()">
+                        👁️ Reveal Secret Message
+                    </button>
+                </div>
+
+                <!-- Message Content -->
+                <div class="card view-card" id="viewContent" style="display: none;">
+                    <div class="view-icon success">✅</div>
+                    <h2 class="view-title">Secret Message Revealed</h2>
+                    <p class="view-subtitle">This message has been decrypted for you.</p>
+
+                    <div class="message-content" id="messageDisplay"></div>
+
+                    <div class="destroyed-notice" id="destroyedNotice">
+                        🔥 This message has been permanently destroyed and cannot be viewed again.
+                    </div>
+
+                    <div class="btn-group" style="margin-top: 1.5rem;">
+                        <button class="btn btn-primary" onclick="showPage('create')">
+                            ✨ Create Your Own Secret
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Message Not Found -->
+                <div class="card view-card" id="viewNotFound" style="display: none;">
+                    <div class="view-icon destroyed">💀</div>
+                    <h2 class="view-title">Message Destroyed</h2>
+                    <p class="view-subtitle">
+                        This message has already been read and permanently destroyed, 
+                        or the link has expired.<br><br>
+                        No traces remain. That's the point. 🔥
+                    </p>
+
+                    <button class="btn btn-primary" onclick="showPage('create')" style="margin-top: 1rem;">
+                        ✨ Create Your Own Secret
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            Built with 🔥 by BurNote &mdash; Your secrets die with the link.
+        </footer>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>
