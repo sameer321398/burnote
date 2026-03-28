@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Message</title>
+    <title>Private Message</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap');
 
         * {
+            margin: 0; padding: 0; box-sizing: border-box;
             -webkit-user-select: none !important;
             user-select: none !important;
             -webkit-touch-callout: none !important;
@@ -17,13 +18,11 @@
         @media print { html, body { display: none !important; } }
 
         html, body {
-            margin: 0;
-            padding: 0;
             height: 100%;
             overflow: hidden;
             background: #000;
-            color: #ccc;
-            font-family: 'Inter', -apple-system, sans-serif;
+            color: #fff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             touch-action: none;
         }
 
@@ -31,136 +30,164 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start; /* Keeps message box at top */
-            padding: 80px 20px 0; /* Huge padding at top */
-            background: #000;
+            padding: 40px 24px;
         }
 
-        /* Black shield */
-        #shield {
-            position: fixed;
-            inset: 0;
-            background: #000;
-            z-index: 99999;
-            display: none;
-        }
-        #shield.on { display: block; }
-
-        /* Message Box - Distinct and separated from thumbs */
-        .msg-card {
-            max-width: 460px;
+        /* Top Header */
+        .header {
             width: 100%;
-            min-height: 180px; /* Bigger box */
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.12); /* Brighter border for 'box' look */
-            border-radius: 20px;
-            padding: 30px;
+            text-align: center;
+            margin-bottom: 40px;
+            opacity: 0.5;
+        }
+        .header-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        /* Message Card - FIXED TOP */
+        .card-container {
+            width: 100%;
+            max-width: 440px;
+            margin-top: 20px;
+        }
+
+        .msg-card {
+            width: 100%;
+            min-height: 200px;
+            background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            padding: 32px;
             display: flex;
-            align-items: flex-start; /* Text starts at top of box */
+            align-items: flex-start;
             justify-content: flex-start;
             opacity: 0;
-            transform: translateY(10px);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 0 30px rgba(0,0,0,0.5); /* Shadow to stand out */
+            transform: scale(0.98) translateY(10px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
 
         .msg-card.visible {
             opacity: 1;
-            transform: translateY(0);
+            transform: scale(1) translateY(0);
         }
 
         .msg-text {
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             line-height: 1.7;
-            color: #ececec;
-            white-space: pre-wrap;
-            word-wrap: break-word;
+            color: #eee;
             width: 100%;
+            font-weight: 300;
         }
 
-        /* Thumb zones - Locked to absolute bottom */
-        .hold-zones {
+        /* Hint Text */
+        .hold-hint {
             position: fixed;
-            bottom: 30px; /* Far from top box */
+            bottom: 160px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #444;
+            letter-spacing: 1px;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+
+        /* Thumb Sensors - LOCKED BOTTOM */
+        .sensor-container {
+            position: fixed;
+            bottom: 40px;
             left: 0;
             right: 0;
             display: flex;
-            justify-content: space-around;
+            justify-content: space-between;
             padding: 0 40px;
-            z-index: 100;
+            z-index: 1000;
         }
 
-        .zone {
-            width: 82px;
-            height: 82px;
-            border: 1px solid rgba(255,255,255,0.15); /* Solid line circles */
+        .sensor {
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.02);
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(255,255,255,0.02);
+            position: relative;
+            transition: all 0.3s;
         }
 
-        .zone.held {
-            border-color: rgba(255,255,255,0.2);
-            background: rgba(255,255,255,0.04);
-            transform: scale(0.95);
-        }
-
-        .zone-dot {
-            width: 10px;
-            height: 10px;
+        .sensor::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
             border-radius: 50%;
-            background: rgba(255,255,255,0.1);
+            border: 1px solid transparent;
+            transition: all 0.3s;
         }
 
-        .zone.held .zone-dot {
-            background: rgba(255,255,255,0.3);
-            box-shadow: 0 0 15px rgba(255,255,255,0.1);
+        .sensor.active {
+            border-color: rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.05);
         }
 
-        .hold-hint {
-            position: fixed;
-            bottom: 140px;
-            width: 100%;
-            text-align: center;
-            color: #222;
-            font-size: 0.75rem;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+        .sensor.active::before {
+            border-color: rgba(255,255,255,0.1);
+            transform: scale(1.1);
         }
 
-        /* Gone / Error states */
-        .state { display: none; }
+        .sensor-dot {
+            width: 12px;
+            height: 12px;
+            background: #222;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .sensor.active .sensor-dot {
+            background: #fff;
+            box-shadow: 0 0 20px rgba(255,255,255,0.4);
+        }
+
+        /* System Messages Overlay */
+        #shield {
+            position: fixed; inset: 0; background: #000; z-index: 99999; display: none;
+        }
+        #shield.on { display: block; }
+
+        .state { display: none; text-align: center; margin-top: 100px; }
         .state.active { display: block; }
-        .gone-text { color: #333; font-size: 0.85rem; margin-top: 100px; text-align: center; }
+        .info-text { font-size: 0.9rem; color: #555; }
 
-        /* Desktop: auto-show */
+        /* Desktop: Direct Reveal */
         @media (hover: hover) and (pointer: fine) {
-            .hold-zones, .hold-hint { display: none !important; }
+            .sensor-container, .hold-hint { display: none !important; }
             .msg-card { opacity: 1; transform: none; }
         }
 
-        /* Password */
+        /* Password Input Area */
         #pwWrap input {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
-            color: #ccc;
-            padding: 12px 16px;
-            font-family: inherit;
-            border-radius: 8px;
-            width: 220px;
-            text-align: center;
+            background: #111;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 16px 24px;
+            border-radius: 12px;
+            width: 260px;
             outline: none;
+            font-family: inherit;
+            margin-bottom: 20px;
+            text-align: center;
         }
         #pwWrap button {
-            display: block;
-            margin: 15px auto 0;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.08);
-            color: #999;
-            padding: 10px 30px;
-            border-radius: 8px;
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 12px 40px;
+            border-radius: 12px;
+            font-weight: 600;
             cursor: pointer;
         }
     </style>
@@ -168,33 +195,42 @@
 <body>
     <div id="shield"></div>
 
-    <div class="state active" id="stateLoading"></div>
+    <div class="header">
+        <div class="header-title">Secure Decrypted Note</div>
+    </div>
 
-    <!-- Message Display Area -->
-    <div class="state" id="stateMessage">
-        <div class="msg-card" id="msgCard">
-            <div class="msg-text" id="msgText"></div>
+    <!-- Message State -->
+    <div class="state active" id="stateMessage">
+        <div class="card-container">
+            <div class="msg-card" id="msgCard">
+                <div class="msg-text" id="msgText"></div>
+            </div>
         </div>
-        <div class="hold-hint" id="holdHint">hold both circles at the bottom</div>
+        <div class="hold-hint" id="holdHint">Hold both sensors to view</div>
+
+        <div class="sensor-container" id="sensorContainer" style="display:none;">
+            <div class="sensor" id="sensorLeft"><div class="sensor-dot"></div></div>
+            <div class="sensor" id="sensorRight"><div class="sensor-dot"></div></div>
+        </div>
     </div>
 
-    <!-- Gone -->
+    <!-- Loading State -->
+    <div class="state" id="stateLoading">
+        <div class="info-text">Decrypting tunnel...</div>
+    </div>
+
+    <!-- Gone State -->
     <div class="state" id="stateGone">
-        <div class="gone-text">this message no longer exists</div>
+        <div class="info-text">Note expired or already destroyed.</div>
     </div>
 
-    <!-- Password -->
+    <!-- Password State -->
     <div class="state" id="statePw">
         <div id="pwWrap">
-            <input type="password" id="pw" placeholder="password">
-            <button onclick="submitPw()">unlock</button>
+            <input type="password" id="pw" placeholder="Enter security key">
+            <br>
+            <button onclick="submitPw()">Unlock</button>
         </div>
-    </div>
-
-    <!-- Controls (Mobile only) -->
-    <div class="hold-zones" id="holdZones" style="display:none;">
-        <div class="zone" id="zoneLeft"><div class="zone-dot"></div></div>
-        <div class="zone" id="zoneRight"><div class="zone-dot"></div></div>
     </div>
 
     <script>
@@ -204,15 +240,15 @@
         let destroyed = false;
         let messageLoaded = false;
 
-        // Security
+        // Security listeners
         document.addEventListener('visibilitychange', () => { if (document.hidden && messageLoaded) killMessage(); });
         window.addEventListener('blur', () => { if (messageLoaded) killMessage(); });
         window.addEventListener('pagehide', () => killMessage());
         window.addEventListener('beforeunload', () => killMessage());
 
-        // Hold Logic
-        const zoneLeft = document.getElementById('zoneLeft');
-        const zoneRight = document.getElementById('zoneRight');
+        // Interaction
+        const sensorLeft = document.getElementById('sensorLeft');
+        const sensorRight = document.getElementById('sensorRight');
         const msgCard = document.getElementById('msgCard');
         const holdHint = document.getElementById('holdHint');
         const msgText = document.getElementById('msgText');
@@ -221,15 +257,14 @@
         let rightHeld = false;
         let activeTouches = {};
 
-        function isInsideZone(touch, zone) {
-            const rect = zone.getBoundingClientRect();
+        function isInsideZone(touch, sensor) {
+            const rect = sensor.getBoundingClientRect();
             const centerX = rect.left + rect.width / 2;
             const centerY = rect.top + rect.height / 2;
             const radius = rect.width / 2;
             const dx = touch.clientX - centerX;
             const dy = touch.clientY - centerY;
-            // 20px Grace area (buffer) so it's not too sensitive
-            const buffer = 20;
+            const buffer = 25; // Good buffer for smooth feel
             return (dx * dx + dy * dy) <= ((radius + buffer) * (radius + buffer));
         }
 
@@ -250,13 +285,11 @@
                 e.preventDefault();
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     const t = e.changedTouches[i];
-                    if (isInsideZone(t, zoneLeft)) {
-                        leftHeld = true; zoneLeft.classList.add('held');
-                        activeTouches[t.identifier] = 'left';
+                    if (isInsideZone(t, sensorLeft)) {
+                        leftHeld = true; sensorLeft.classList.add('active'); activeTouches[t.identifier] = 'left';
                     }
-                    if (isInsideZone(t, zoneRight)) {
-                        rightHeld = true; zoneRight.classList.add('held');
-                        activeTouches[t.identifier] = 'right';
+                    if (isInsideZone(t, sensorRight)) {
+                        rightHeld = true; sensorRight.classList.add('active'); activeTouches[t.identifier] = 'right';
                     }
                 }
                 updateHoldState();
@@ -266,30 +299,24 @@
                 if (!messageLoaded || destroyed) return;
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     const t = e.changedTouches[i];
-                    if (activeTouches[t.identifier] === 'left' && !isInsideZone(t, zoneLeft)) {
-                        leftHeld = false; zoneLeft.classList.remove('held'); delete activeTouches[t.identifier];
+                    if (activeTouches[t.identifier] === 'left' && !isInsideZone(t, sensorLeft)) {
+                        leftHeld = false; sensorLeft.classList.remove('active'); delete activeTouches[t.identifier];
                     }
-                    if (activeTouches[t.identifier] === 'right' && !isInsideZone(t, zoneRight)) {
-                        rightHeld = false; zoneRight.classList.remove('held'); delete activeTouches[t.identifier];
+                    if (activeTouches[t.identifier] === 'right' && !isInsideZone(t, sensorRight)) {
+                        rightHeld = false; sensorRight.classList.remove('active'); delete activeTouches[t.identifier];
                     }
-                }
-                updateHoldState();
-            }, { passive: false });
-
-            document.addEventListener('touchend', (e) => {
-                for (let i = 0; i < e.changedTouches.length; i++) {
-                    const t = e.changedTouches[i];
-                    if (activeTouches[t.identifier] === 'left') { leftHeld = false; zoneLeft.classList.remove('held'); }
-                    if (activeTouches[t.identifier] === 'right') { rightHeld = false; zoneRight.classList.remove('held'); }
-                    delete activeTouches[t.identifier];
                 }
                 updateHoldState();
             });
 
-            document.addEventListener('touchcancel', () => {
-                leftHeld = false; rightHeld = false;
-                zoneLeft.classList.remove('held'); zoneRight.classList.remove('held');
-                activeTouches = {}; updateHoldState();
+            document.addEventListener('touchend', (e) => {
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    const t = e.changedTouches[i];
+                    if (activeTouches[t.identifier] === 'left') { leftHeld = false; sensorLeft.classList.remove('active'); }
+                    if (activeTouches[t.identifier] === 'right') { rightHeld = false; sensorRight.classList.remove('active'); }
+                    delete activeTouches[t.identifier];
+                }
+                updateHoldState();
             });
         }
 
@@ -308,8 +335,7 @@
                 msgText.textContent = data.content;
                 messageLoaded = true;
                 showState('stateMessage');
-                if (isTouchDevice) { document.getElementById('holdZones').style.display = 'flex'; }
-                else { msgCard.classList.add('visible'); }
+                if (isTouchDevice) document.getElementById('sensorContainer').style.display = 'flex';
             } catch { showState('stateGone'); }
         }
 
@@ -326,7 +352,7 @@
         function killMessage() {
             if (destroyed) return;
             destroyed = true;
-            document.body.innerHTML = '<div class="gone-text">this message no longer exists</div>';
+            document.body.innerHTML = '<div style="color:#333; font-size: 0.8rem; margin-top:100px; text-align:center;">This note has been purged.</div>';
         }
 
         if (msgId) loadMessage();
