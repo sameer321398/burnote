@@ -47,8 +47,8 @@ app.post('/api/messages', (req, res) => {
         return res.status(400).json({ error: 'Message content is required' });
     }
 
-    if (content.length > 10000) {
-        return res.status(400).json({ error: 'Message too long (max 10,000 characters)' });
+    if (content.length > 500) {
+        return res.status(400).json({ error: 'Message too long (max 500 characters)' });
     }
 
     const id = uuidv4();

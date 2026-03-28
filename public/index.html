@@ -43,7 +43,7 @@
             line-height: 1.7;
             padding: 16px;
             border-radius: 8px;
-            resize: vertical;
+            resize: none; /* Disable resizing to keep layout stable */
             outline: none;
             transition: border-color 0.2s;
         }
@@ -156,7 +156,7 @@
 </head>
 <body>
     <div class="container">
-        <textarea id="msg" placeholder="type your message..." maxlength="10000"></textarea>
+        <textarea id="msg" placeholder="type your message (max 500 chars)..." maxlength="500"></textarea>
         <button class="create-btn" id="createBtn" onclick="create()">create link</button>
 
         <div class="result" id="result">
@@ -180,6 +180,11 @@
         async function create() {
             const msg = document.getElementById('msg').value.trim();
             if (!msg) return;
+
+            if (msg.length > 500) {
+                showToast('message too long');
+                return;
+            }
 
             const btn = document.getElementById('createBtn');
             btn.disabled = true;
@@ -213,7 +218,7 @@
                 btn.style.display = 'none';
                 showToast('link created');
 
-            } catch {
+            } catch (err) {
                 showToast('failed to create');
                 btn.disabled = false;
                 btn.textContent = 'create link';
