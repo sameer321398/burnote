@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Private Message</title>
+    <title>Secure Message</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap');
 
@@ -19,6 +19,7 @@
 
         html, body {
             height: 100%;
+            width: 100%;
             overflow: hidden;
             background: #000;
             color: #fff;
@@ -30,86 +31,88 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 40px 24px;
+            justify-content: flex-start;
+            padding: 5vh 6vw; /* Relative to viewport */
         }
 
         /* Top Header */
         .header {
             width: 100%;
             text-align: center;
-            margin-bottom: 40px;
-            opacity: 0.5;
+            margin-bottom: 3vh;
+            opacity: 0.4;
         }
-        .header-title {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-        }
+        .header-title { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; }
 
-        /* Message Card - FIXED TOP */
-        .card-container {
+        /* Message Display Area (Flexible) */
+        .main-display {
+            flex-grow: 1; /* Occupies available space */
             width: 100%;
-            max-width: 440px;
-            margin-top: 20px;
+            max-width: 450px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 20vh; /* Space from sensors */
         }
 
         .msg-card {
             width: 100%;
-            min-height: 200px;
-            background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 24px;
-            padding: 32px;
-            display: flex;
-            align-items: flex-start;
-            justify-content: flex-start;
+            background: linear-gradient(165deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 20px;
+            padding: 30px;
             opacity: 0;
-            transform: scale(0.98) translateY(10px);
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            transform: scale(0.97) translateY(10px);
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
         }
 
-        .msg-card.visible {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-        }
+        .msg-card.visible { opacity: 1; transform: scale(1) translateY(0); }
 
         .msg-text {
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             line-height: 1.7;
             color: #eee;
             width: 100%;
             font-weight: 300;
+            word-wrap: break-word;
         }
 
-        /* Hint Text */
-        .hold-hint {
+        /* Hold-to-view sensors (Pinned to Bottom) */
+        .sensor-system {
             position: fixed;
-            bottom: 160px;
-            width: 100%;
-            text-align: center;
-            font-size: 0.8rem;
-            color: #444;
-            letter-spacing: 1px;
-            font-weight: 500;
-            transition: opacity 0.3s;
-        }
-
-        /* Thumb Sensors - LOCKED BOTTOM */
-        .sensor-container {
-            position: fixed;
-            bottom: 40px;
+            bottom: 0;
             left: 0;
             right: 0;
+            height: 180px;
+            padding: 0 10vw 40px;
             display: flex;
-            justify-content: space-between;
-            padding: 0 40px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
             z-index: 1000;
         }
 
+        .sensor-row {
+            width: 100%;
+            max-width: 450px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .hold-hint {
+            margin-bottom: 30px;
+            font-size: 0.75rem;
+            color: #444;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: opacity 0.2s;
+        }
+
         .sensor {
-            width: 80px;
-            height: 80px;
+            width: 75px;
+            height: 75px;
             border-radius: 50%;
             border: 1px solid rgba(255,255,255,0.1);
             background: rgba(255,255,255,0.02);
@@ -117,118 +120,67 @@
             align-items: center;
             justify-content: center;
             position: relative;
-            transition: all 0.3s;
+            transition: all 0.2s;
         }
 
-        .sensor::before {
-            content: '';
-            position: absolute;
-            inset: -4px;
-            border-radius: 50%;
-            border: 1px solid transparent;
-            transition: all 0.3s;
-        }
+        .sensor-dot { width: 10px; height: 10px; background: #222; border-radius: 50%; transition: all 0.3s; }
 
-        .sensor.active {
-            border-color: rgba(255,255,255,0.3);
-            background: rgba(255,255,255,0.05);
-        }
+        .sensor.active { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.06); transform: scale(0.95); }
+        .sensor.active .sensor-dot { background: #fff; box-shadow: 0 0 15px rgba(255,255,255,0.5); }
 
-        .sensor.active::before {
-            border-color: rgba(255,255,255,0.1);
-            transform: scale(1.1);
-        }
-
-        .sensor-dot {
-            width: 12px;
-            height: 12px;
-            background: #222;
-            border-radius: 50%;
-            transition: all 0.3s;
-        }
-
-        .sensor.active .sensor-dot {
-            background: #fff;
-            box-shadow: 0 0 20px rgba(255,255,255,0.4);
-        }
-
-        /* System Messages Overlay */
-        #shield {
-            position: fixed; inset: 0; background: #000; z-index: 99999; display: none;
-        }
+        /* System States */
+        #shield { position: fixed; inset: 0; background: #000; z-index: 99999; display: none; }
         #shield.on { display: block; }
 
-        .state { display: none; text-align: center; margin-top: 100px; }
+        .state { display: none; text-align: center; width: 100%; padding-top: 15vh; }
         .state.active { display: block; }
-        .info-text { font-size: 0.9rem; color: #555; }
+        .status-msg { font-size: 0.85rem; color: #444; }
 
-        /* Desktop: Direct Reveal */
+        /* Desktop Mode */
         @media (hover: hover) and (pointer: fine) {
-            .sensor-container, .hold-hint { display: none !important; }
+            .sensor-system { display: none !important; }
             .msg-card { opacity: 1; transform: none; }
+            .main-display { padding-bottom: 0; }
         }
 
-        /* Password Input Area */
-        #pwWrap input {
-            background: #111;
-            border: 1px solid #333;
-            color: #fff;
-            padding: 16px 24px;
-            border-radius: 12px;
-            width: 260px;
-            outline: none;
-            font-family: inherit;
-            margin-bottom: 20px;
-            text-align: center;
+        /* Password Unlock Area */
+        #pwArea input {
+            background: #111; border: 1px solid #333; color: #fff; padding: 16px; 
+            border-radius: 12px; width: 220px; text-align: center; outline: none;
+            margin-bottom: 20px; font-family: inherit; font-size: 0.9rem;
         }
-        #pwWrap button {
-            background: #fff;
-            color: #000;
-            border: none;
-            padding: 12px 40px;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-        }
+        #pwArea button { background: #fff; color: #000; border: none; padding: 12px 30px; border-radius: 10px; font-weight: 600; cursor: pointer; }
+
     </style>
 </head>
 <body>
     <div id="shield"></div>
 
-    <div class="header">
-        <div class="header-title">Secure Decrypted Note</div>
-    </div>
+    <div class="header"><div class="header-title">Secure Encrypted Bridge</div></div>
 
-    <!-- Message State -->
+    <!-- MAIN VIEW STATE -->
     <div class="state active" id="stateMessage">
-        <div class="card-container">
+        <div class="main-display">
             <div class="msg-card" id="msgCard">
                 <div class="msg-text" id="msgText"></div>
             </div>
         </div>
-        <div class="hold-hint" id="holdHint">Hold both sensors to view</div>
 
-        <div class="sensor-container" id="sensorContainer" style="display:none;">
-            <div class="sensor" id="sensorLeft"><div class="sensor-dot"></div></div>
-            <div class="sensor" id="sensorRight"><div class="sensor-dot"></div></div>
+        <div class="sensor-system" id="sensorSystem" style="display:none;">
+            <div class="hold-hint" id="holdHint">Secure Two-Thumb Access Only</div>
+            <div class="sensor-row">
+                <div class="sensor" id="sensorLeft"><div class="sensor-dot"></div></div>
+                <div class="sensor" id="sensorRight"><div class="sensor-dot"></div></div>
+            </div>
         </div>
     </div>
 
-    <!-- Loading State -->
-    <div class="state" id="stateLoading">
-        <div class="info-text">Decrypting tunnel...</div>
-    </div>
-
-    <!-- Gone State -->
-    <div class="state" id="stateGone">
-        <div class="info-text">Note expired or already destroyed.</div>
-    </div>
-
-    <!-- Password State -->
+    <!-- LOADING / ERROR STATES -->
+    <div class="state" id="stateLoading"><div class="status-msg">Reading secure bytes...</div></div>
+    <div class="state" id="stateGone"><div class="status-msg">Note has been purged or link expired.</div></div>
     <div class="state" id="statePw">
-        <div id="pwWrap">
-            <input type="password" id="pw" placeholder="Enter security key">
-            <br>
+        <div id="pwArea">
+            <input type="password" id="pw" placeholder="Security Key">
             <button onclick="submitPw()">Unlock</button>
         </div>
     </div>
@@ -240,13 +192,11 @@
         let destroyed = false;
         let messageLoaded = false;
 
-        // Security listeners
         document.addEventListener('visibilitychange', () => { if (document.hidden && messageLoaded) killMessage(); });
         window.addEventListener('blur', () => { if (messageLoaded) killMessage(); });
         window.addEventListener('pagehide', () => killMessage());
         window.addEventListener('beforeunload', () => killMessage());
 
-        // Interaction
         const sensorLeft = document.getElementById('sensorLeft');
         const sensorRight = document.getElementById('sensorRight');
         const msgCard = document.getElementById('msgCard');
@@ -264,7 +214,7 @@
             const radius = rect.width / 2;
             const dx = touch.clientX - centerX;
             const dy = touch.clientY - centerY;
-            const buffer = 25; // Good buffer for smooth feel
+            const buffer = 25; 
             return (dx * dx + dy * dy) <= ((radius + buffer) * (radius + buffer));
         }
 
@@ -335,7 +285,7 @@
                 msgText.textContent = data.content;
                 messageLoaded = true;
                 showState('stateMessage');
-                if (isTouchDevice) document.getElementById('sensorContainer').style.display = 'flex';
+                if (isTouchDevice) document.getElementById('sensorSystem').style.display = 'flex';
             } catch { showState('stateGone'); }
         }
 
@@ -352,7 +302,7 @@
         function killMessage() {
             if (destroyed) return;
             destroyed = true;
-            document.body.innerHTML = '<div style="color:#333; font-size: 0.8rem; margin-top:100px; text-align:center;">This note has been purged.</div>';
+            document.body.innerHTML = '<div style="color:#222; font-size: 0.75rem; margin-top:20vh; text-align:center;">Purged.</div>';
         }
 
         if (msgId) loadMessage();
