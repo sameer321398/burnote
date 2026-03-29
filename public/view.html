@@ -3,12 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Secure Message</title>
+    <meta name="theme-color" content="#070710">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Secure Message — BurNote</title>
+    <link rel="icon" href="/logo.png" type="image/png">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap');
 
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* Block screenshots / selection */
         * {
-            margin: 0; padding: 0; box-sizing: border-box;
             -webkit-user-select: none !important;
             user-select: none !important;
             -webkit-touch-callout: none !important;
@@ -21,9 +27,9 @@
             height: 100%;
             width: 100%;
             overflow: hidden;
-            background: #000;
-            color: #fff;
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #070710;
+            color: #eeeef5;
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
             touch-action: none;
         }
 
@@ -32,60 +38,75 @@
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            padding: 5vh 6vw; /* Relative to viewport */
+            padding: max(4vh, 20px) max(5vw, 16px);
         }
 
-        /* Top Header */
-        .header {
+        /* ——— Header ——— */
+        .top-bar {
             width: 100%;
             text-align: center;
-            margin-bottom: 3vh;
-            opacity: 0.4;
+            margin-bottom: max(3vh, 16px);
+            opacity: 0.3;
         }
-        .header-title { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 2px; }
+        .top-bar__text {
+            font-size: 0.58rem;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            font-weight: 500;
+        }
 
-        /* Message Display Area (Flexible) */
-        .main-display {
-            flex-grow: 1; /* Occupies available space */
+        /* ——— Main ——— */
+        .main-area {
+            flex: 1;
             width: 100%;
-            max-width: 450px;
+            max-width: 440px;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding-bottom: 20vh; /* Space from sensors */
+            padding-bottom: max(18vh, 100px);
         }
 
         .msg-card {
             width: 100%;
-            background: linear-gradient(165deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 20px;
-            padding: 30px;
+            background: linear-gradient(165deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.015) 100%);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 22px;
+            padding: max(24px, 5vw);
             opacity: 0;
-            transform: scale(0.97) translateY(10px);
-            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            transform: scale(0.96) translateY(12px);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .msg-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,107,53,0.25), transparent);
         }
 
         .msg-card.visible { opacity: 1; transform: scale(1) translateY(0); }
 
         .msg-text {
-            font-size: 1.1rem;
-            line-height: 1.7;
-            color: #eee;
-            width: 100%;
+            font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+            line-height: 1.75;
+            color: #e8e8f0;
             font-weight: 300;
             word-wrap: break-word;
+            white-space: pre-wrap;
         }
 
-        /* Hold-to-view sensors (Pinned to Bottom) */
-        .sensor-system {
+        /* ——— Sensors (mobile) ——— */
+        .sensor-area {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            height: 180px;
-            padding: 0 10vw 40px;
+            height: max(180px, 22vh);
+            padding: 0 8vw max(36px, env(safe-area-inset-bottom, 36px));
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -95,92 +116,192 @@
 
         .sensor-row {
             width: 100%;
-            max-width: 450px;
+            max-width: 420px;
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
         }
 
-        .hold-hint {
-            margin-bottom: 30px;
-            font-size: 0.75rem;
-            color: #444;
-            letter-spacing: 1px;
+        .sensor-hint {
+            margin-bottom: max(24px, 3vh);
+            font-size: 0.68rem;
+            color: #333;
+            letter-spacing: 1.5px;
             text-transform: uppercase;
-            transition: opacity 0.2s;
+            font-weight: 500;
+            transition: opacity 0.25s;
         }
 
         .sensor {
-            width: 75px;
-            height: 75px;
+            width: clamp(66px, 18vw, 80px);
+            height: clamp(66px, 18vw, 80px);
             border-radius: 50%;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.015);
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
             transition: all 0.2s;
         }
 
-        .sensor-dot { width: 10px; height: 10px; background: #222; border-radius: 50%; transition: all 0.3s; }
+        .sensor-dot {
+            width: 10px;
+            height: 10px;
+            background: #1a1a2a;
+            border-radius: 50%;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
 
-        .sensor.active { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.06); transform: scale(0.95); }
-        .sensor.active .sensor-dot { background: #fff; box-shadow: 0 0 15px rgba(255,255,255,0.5); }
+        .sensor.active {
+            border-color: rgba(255,255,255,0.35);
+            background: rgba(255,255,255,0.05);
+            transform: scale(0.93);
+        }
 
-        /* System States */
-        #shield { position: fixed; inset: 0; background: #000; z-index: 99999; display: none; }
+        .sensor.active .sensor-dot {
+            background: #fff;
+            box-shadow: 0 0 18px rgba(255,255,255,0.5);
+        }
+
+        /* ——— States ——— */
+        #shield { position: fixed; inset: 0; background: #070710; z-index: 99999; display: none; }
         #shield.on { display: block; }
 
-        .state { display: none; text-align: center; width: 100%; padding-top: 15vh; }
-        .state.active { display: block; }
-        .status-msg { font-size: 0.85rem; color: #444; }
+        .state { display: none; text-align: center; width: 100%; padding-top: 12vh; }
+        .state.active { display: block; animation: fadeUp 0.4s ease; }
 
-        /* Desktop Mode */
-        @media (hover: hover) and (pointer: fine) {
-            .sensor-system { display: none !important; }
-            .msg-card { opacity: 1; transform: none; }
-            .main-display { padding-bottom: 0; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* Password Unlock Area */
+        .state h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-msg {
+            font-size: 0.82rem;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        /* ——— Password ——— */
+        #pwArea {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
         #pwArea input {
-            background: #111; border: 1px solid #333; color: #fff; padding: 16px; 
-            border-radius: 12px; width: 220px; text-align: center; outline: none;
-            margin-bottom: 20px; font-family: inherit; font-size: 0.9rem;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #fff;
+            padding: 16px 20px;
+            border-radius: 14px;
+            width: min(240px, 80vw);
+            text-align: center;
+            outline: none;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: all 0.25s;
         }
-        #pwArea button { background: #fff; color: #000; border: none; padding: 12px 30px; border-radius: 10px; font-weight: 600; cursor: pointer; }
 
+        #pwArea input:focus {
+            border-color: rgba(255,107,53,0.4);
+            box-shadow: 0 0 0 3px rgba(255,107,53,0.08);
+        }
+
+        #pwArea button {
+            background: linear-gradient(135deg, #ff6b35, #ff2d55);
+            color: #fff;
+            border: none;
+            padding: 14px 36px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-family: 'Space Grotesk', sans-serif;
+            min-height: 48px;
+            -webkit-tap-highlight-color: transparent;
+            transition: all 0.2s;
+        }
+
+        #pwArea button:active { transform: scale(0.96); }
+
+        /* ——— Desktop ——— */
+        @media (hover: hover) and (pointer: fine) {
+            .sensor-area { display: none !important; }
+            .msg-card { opacity: 1; transform: none; }
+            .main-area { padding-bottom: 0; }
+        }
+
+        /* ——— Spinner ——— */
+        .spin-ring {
+            width: 32px;
+            height: 32px;
+            border: 3px solid rgba(255,255,255,0.08);
+            border-top-color: #ff6b35;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1.25rem;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Purged screen */
+        .purged {
+            color: #1a1a2a;
+            font-size: 0.72rem;
+            text-align: center;
+            margin-top: 25vh;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
     </style>
 </head>
 <body>
     <div id="shield"></div>
 
-    <div class="header"><div class="header-title">Secure Encrypted Bridge</div></div>
+    <div class="top-bar"><div class="top-bar__text">Secure Message Bridge</div></div>
 
-    <!-- MAIN VIEW STATE -->
-    <div class="state active" id="stateMessage">
-        <div class="main-display">
+    <!-- Message -->
+    <div class="state active" id="stateMsg">
+        <div class="main-area">
             <div class="msg-card" id="msgCard">
                 <div class="msg-text" id="msgText"></div>
             </div>
         </div>
-
-        <div class="sensor-system" id="sensorSystem" style="display:none;">
-            <div class="hold-hint" id="holdHint">Secure Two-Thumb Access Only</div>
+        <div class="sensor-area" id="sensorArea" style="display:none;">
+            <div class="sensor-hint" id="sensorHint">Hold both thumbs to read</div>
             <div class="sensor-row">
-                <div class="sensor" id="sensorLeft"><div class="sensor-dot"></div></div>
-                <div class="sensor" id="sensorRight"><div class="sensor-dot"></div></div>
+                <div class="sensor" id="sL"><div class="sensor-dot"></div></div>
+                <div class="sensor" id="sR"><div class="sensor-dot"></div></div>
             </div>
         </div>
     </div>
 
-    <!-- LOADING / ERROR STATES -->
-    <div class="state" id="stateLoading"><div class="status-msg">Reading secure bytes...</div></div>
-    <div class="state" id="stateGone"><div class="status-msg">Note has been purged or link expired.</div></div>
+    <!-- Loading -->
+    <div class="state" id="stateLoad">
+        <div class="spin-ring"></div>
+        <h2>Decrypting</h2>
+        <p class="status-msg">Securely retrieving message…</p>
+    </div>
+
+    <!-- Gone -->
+    <div class="state" id="stateGone">
+        <h2 style="margin-bottom:0.5rem;">💀 Message Destroyed</h2>
+        <p class="status-msg">This message has been viewed or the link expired.</p>
+    </div>
+
+    <!-- Password -->
     <div class="state" id="statePw">
+        <h2 style="margin-bottom:1.5rem;">🔒 Password Required</h2>
         <div id="pwArea">
-            <input type="password" id="pw" placeholder="Security Key">
+            <input type="password" id="pw" placeholder="Enter password" autocomplete="off">
             <button onclick="submitPw()">Unlock</button>
         </div>
     </div>
@@ -188,89 +309,79 @@
     <script>
         const msgId = window.location.pathname.split('/view/')[1];
         const shield = document.getElementById('shield');
-        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
         let destroyed = false;
-        let messageLoaded = false;
+        let loaded = false;
 
-        document.addEventListener('visibilitychange', () => { if (document.hidden && messageLoaded) killMessage(); });
-        window.addEventListener('blur', () => { if (messageLoaded) killMessage(); });
-        window.addEventListener('pagehide', () => killMessage());
-        window.addEventListener('beforeunload', () => killMessage());
+        // Security: hide on tab switch / blur
+        document.addEventListener('visibilitychange', () => { if (document.hidden && loaded) kill(); });
+        window.addEventListener('blur', () => { if (loaded) kill(); });
+        window.addEventListener('pagehide', kill);
+        window.addEventListener('beforeunload', kill);
 
-        const sensorLeft = document.getElementById('sensorLeft');
-        const sensorRight = document.getElementById('sensorRight');
+        // Sensors
+        const sL = document.getElementById('sL');
+        const sR = document.getElementById('sR');
         const msgCard = document.getElementById('msgCard');
-        const holdHint = document.getElementById('holdHint');
+        const sensorHint = document.getElementById('sensorHint');
         const msgText = document.getElementById('msgText');
 
-        let leftHeld = false;
-        let rightHeld = false;
-        let activeTouches = {};
+        let leftOn = false, rightOn = false;
+        let touches = {};
 
-        function isInsideZone(touch, sensor) {
-            const rect = sensor.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            const radius = rect.width / 2;
-            const dx = touch.clientX - centerX;
-            const dy = touch.clientY - centerY;
-            const buffer = 25; 
-            return (dx * dx + dy * dy) <= ((radius + buffer) * (radius + buffer));
+        function inZone(t, el) {
+            const r = el.getBoundingClientRect();
+            const cx = r.left + r.width / 2;
+            const cy = r.top + r.height / 2;
+            const rad = r.width / 2 + 30;
+            const dx = t.clientX - cx;
+            const dy = t.clientY - cy;
+            return (dx * dx + dy * dy) <= rad * rad;
         }
 
-        function updateHoldState() {
-            if (destroyed || !messageLoaded) return;
-            if (leftHeld && rightHeld) {
+        function refresh() {
+            if (destroyed || !loaded) return;
+            if (leftOn && rightOn) {
                 msgCard.classList.add('visible');
-                holdHint.style.opacity = '0';
+                sensorHint.style.opacity = '0';
             } else {
                 msgCard.classList.remove('visible');
-                holdHint.style.opacity = '1';
+                sensorHint.style.opacity = '1';
             }
         }
 
-        if (isTouchDevice) {
-            document.addEventListener('touchstart', (e) => {
-                if (!messageLoaded || destroyed) return;
+        if (isTouch) {
+            document.addEventListener('touchstart', e => {
+                if (!loaded || destroyed) return;
                 e.preventDefault();
-                for (let i = 0; i < e.changedTouches.length; i++) {
-                    const t = e.changedTouches[i];
-                    if (isInsideZone(t, sensorLeft)) {
-                        leftHeld = true; sensorLeft.classList.add('active'); activeTouches[t.identifier] = 'left';
-                    }
-                    if (isInsideZone(t, sensorRight)) {
-                        rightHeld = true; sensorRight.classList.add('active'); activeTouches[t.identifier] = 'right';
-                    }
+                for (const t of e.changedTouches) {
+                    if (inZone(t, sL)) { leftOn = true; sL.classList.add('active'); touches[t.identifier] = 'L'; }
+                    if (inZone(t, sR)) { rightOn = true; sR.classList.add('active'); touches[t.identifier] = 'R'; }
                 }
-                updateHoldState();
+                refresh();
             }, { passive: false });
 
-            document.addEventListener('touchmove', (e) => {
-                if (!messageLoaded || destroyed) return;
-                for (let i = 0; i < e.changedTouches.length; i++) {
-                    const t = e.changedTouches[i];
-                    if (activeTouches[t.identifier] === 'left' && !isInsideZone(t, sensorLeft)) {
-                        leftHeld = false; sensorLeft.classList.remove('active'); delete activeTouches[t.identifier];
-                    }
-                    if (activeTouches[t.identifier] === 'right' && !isInsideZone(t, sensorRight)) {
-                        rightHeld = false; sensorRight.classList.remove('active'); delete activeTouches[t.identifier];
-                    }
+            document.addEventListener('touchmove', e => {
+                if (!loaded || destroyed) return;
+                for (const t of e.changedTouches) {
+                    if (touches[t.identifier] === 'L' && !inZone(t, sL)) { leftOn = false; sL.classList.remove('active'); delete touches[t.identifier]; }
+                    if (touches[t.identifier] === 'R' && !inZone(t, sR)) { rightOn = false; sR.classList.remove('active'); delete touches[t.identifier]; }
                 }
-                updateHoldState();
+                refresh();
             });
 
-            document.addEventListener('touchend', (e) => {
-                for (let i = 0; i < e.changedTouches.length; i++) {
-                    const t = e.changedTouches[i];
-                    if (activeTouches[t.identifier] === 'left') { leftHeld = false; sensorLeft.classList.remove('active'); }
-                    if (activeTouches[t.identifier] === 'right') { rightHeld = false; sensorRight.classList.remove('active'); }
-                    delete activeTouches[t.identifier];
+            document.addEventListener('touchend', e => {
+                for (const t of e.changedTouches) {
+                    if (touches[t.identifier] === 'L') { leftOn = false; sL.classList.remove('active'); }
+                    if (touches[t.identifier] === 'R') { rightOn = false; sR.classList.remove('active'); }
+                    delete touches[t.identifier];
                 }
-                updateHoldState();
+                refresh();
             });
         }
 
-        async function loadMessage(password) {
+        async function loadMsg(password) {
+            show('stateLoad');
             try {
                 const res = await fetch(`/api/messages/${msgId}/reveal`, {
                     method: 'POST',
@@ -279,33 +390,36 @@
                 });
                 const data = await res.json();
                 if (!res.ok) {
-                    if (data.error && data.error.includes('password')) { showState('statePw'); return; }
-                    showState('stateGone'); return;
+                    if (data.error?.includes('password')) { show('statePw'); return; }
+                    show('stateGone'); return;
                 }
                 msgText.textContent = data.content;
-                messageLoaded = true;
-                showState('stateMessage');
-                if (isTouchDevice) document.getElementById('sensorSystem').style.display = 'flex';
-            } catch { showState('stateGone'); }
+                loaded = true;
+                show('stateMsg');
+                if (isTouch) document.getElementById('sensorArea').style.display = 'flex';
+            } catch { show('stateGone'); }
         }
 
-        function showState(id) {
+        function show(id) {
             document.querySelectorAll('.state').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
+            document.getElementById(id)?.classList.add('active');
         }
 
         function submitPw() {
-            const pw = document.getElementById('pw').value;
-            if (pw) { showState('stateLoading'); loadMessage(pw); }
+            const val = document.getElementById('pw').value;
+            if (val) loadMsg(val);
         }
 
-        function killMessage() {
+        function kill() {
             if (destroyed) return;
             destroyed = true;
-            document.body.innerHTML = '<div style="color:#222; font-size: 0.75rem; margin-top:20vh; text-align:center;">Purged.</div>';
+            document.body.innerHTML = '<div class="purged">Purged.</div>';
         }
 
-        if (msgId) loadMessage();
+        // Enter key on password
+        document.getElementById('pw')?.addEventListener('keydown', e => { if (e.key === 'Enter') submitPw(); });
+
+        if (msgId) loadMsg();
     </script>
 </body>
 </html>

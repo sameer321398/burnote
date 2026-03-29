@@ -2,310 +2,370 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="BurNote — Send self-destructing secret messages that vanish after being read. End-to-end encrypted, zero-knowledge privacy.">
-    <meta name="theme-color" content="#0a0a0f">
-    <meta name="keywords" content="self-destructing messages, secret notes, encrypted messaging, privacy, burn after reading">
-    <title>BurNote — Self-Destructing Secret Messages</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="description" content="BurNote — Send self-destructing encrypted messages. Read once, gone forever. Zero-knowledge privacy.">
+    <meta name="theme-color" content="#070710">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>BurNote — Burn After Reading</title>
     <link rel="icon" href="/logo.png" type="image/png">
+    <link rel="apple-touch-icon" href="/logo.png">
     <link rel="stylesheet" href="/styles.css">
+    <!-- QR Code Generator -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 </head>
 <body>
 
-    <!-- Animated Background -->
-    <div class="bg-effects">
-        <div class="bg-orb bg-orb-1"></div>
-        <div class="bg-orb bg-orb-2"></div>
-        <div class="bg-orb bg-orb-3"></div>
+    <!-- Noise Texture Overlay -->
+    <div class="noise-overlay"></div>
+
+    <!-- Gradient Mesh Background -->
+    <div class="mesh-bg">
+        <div class="mesh-orb mesh-orb--1"></div>
+        <div class="mesh-orb mesh-orb--2"></div>
+        <div class="mesh-orb mesh-orb--3"></div>
+        <div class="mesh-orb mesh-orb--4"></div>
     </div>
-    <div class="bg-grid"></div>
-    <canvas id="particleCanvas" class="particle-canvas"></canvas>
 
-    <!-- Burn Animation Overlay -->
-    <div class="burn-animation" id="burnAnimation"></div>
+    <!-- Floating Embers Canvas -->
+    <canvas id="emberCanvas" class="ember-canvas"></canvas>
 
-    <!-- App Container -->
-    <div class="app-container">
+    <!-- Burn Overlay -->
+    <div class="burn-overlay" id="burnOverlay"></div>
 
-        <!-- Navbar -->
-        <nav class="navbar">
-            <a class="nav-brand" href="/" onclick="showPage('create'); return false;">
-                <img src="/logo.png" alt="BurNote" class="nav-logo">
-                <div>
-                    <div class="nav-title">BurNote</div>
-                    <div class="nav-tagline">burn after reading</div>
+    <!-- App Shell -->
+    <div class="app-shell">
+
+        <!-- Header -->
+        <header class="header">
+            <a class="header__brand" href="/" onclick="goHome(); return false;">
+                <img src="/logo.png" alt="BurNote" class="header__logo">
+                <div class="header__text">
+                    <span class="header__name">BurNote</span>
+                    <span class="header__sub">burn after reading</span>
                 </div>
             </a>
-            <div class="nav-actions">
-                <a class="nav-link nav-link-glow" href="#" id="navStats">
-                    <span class="nav-stat-icon">🔥</span>
-                    <span id="burnCounter">0</span> burned
-                </a>
-            </div>
-        </nav>
-
-        <!-- Main Content -->
-        <main class="main-content">
-
-            <!-- ===== CREATE PAGE ===== -->
-            <div class="page active" id="page-create">
-
-                <!-- Hero Section -->
-                <div class="hero-badge">
-                    <span class="badge-dot"></span>
-                    End-to-end encrypted
-                </div>
-
-                <h1 class="hero-title">
-                    <span class="typewriter-text" id="heroTypewriter"></span>
-                    <span class="typewriter-cursor">|</span>
-                </h1>
-                <p class="hero-subtitle">
-                    Write a secret. Share the link. It self-destructs after being read — no traces, no logs, no second chances.
-                </p>
-
-                <!-- Message Card -->
-                <div class="card" id="createCard">
-                    <div class="card-header">
-                        <div class="card-icon">🔐</div>
-                        <div class="card-header-text">
-                            <h3>Compose Secret</h3>
-                            <p>Your message is encrypted before it leaves your browser</p>
-                        </div>
-                    </div>
-
-                    <!-- Message Input -->
-                    <div class="form-group">
-                        <label class="form-label">
-                            <span>Secret Message</span>
-                            <span class="char-count" id="charCount">0 / 10,000</span>
-                        </label>
-                        <textarea
-                            class="form-textarea"
-                            id="messageInput"
-                            placeholder="Type your secret message here..."
-                            maxlength="10000"
-                            rows="5"
-                        ></textarea>
-                    </div>
-
-                    <!-- Live Encryption Preview -->
-                    <div class="encryption-preview" id="encryptionPreview">
-                        <div class="encryption-label">
-                            <span class="encryption-dot"></span>
-                            Live encryption preview
-                        </div>
-                        <div class="encryption-text" id="encryptionText">Waiting for input...</div>
-                    </div>
-
-                    <!-- Password (optional) -->
-                    <div class="form-group">
-                        <label class="form-label">
-                            <span>Password Protection <span class="optional-badge">optional</span></span>
-                        </label>
-                        <input
-                            type="password"
-                            class="form-input"
-                            id="passwordInput"
-                            placeholder="Add a password for extra security"
-                            autocomplete="new-password"
-                        >
-                    </div>
-
-                    <!-- Options Row -->
-                    <div class="options-row">
-                        <div class="form-group">
-                            <label class="form-label">Self-destruct timer</label>
-                            <select class="form-select" id="expirySelect">
-                                <option value="5">5 minutes</option>
-                                <option value="30">30 minutes</option>
-                                <option value="60">1 hour</option>
-                                <option value="360">6 hours</option>
-                                <option value="1440" selected>24 hours</option>
-                                <option value="10080">7 days</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Max views</label>
-                            <select class="form-select" id="viewsSelect">
-                                <option value="1" selected>1 view (then burn)</option>
-                                <option value="3">3 views</option>
-                                <option value="5">5 views</option>
-                                <option value="10">10 views</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Create Button -->
-                    <button class="btn btn-primary" id="createBtn" onclick="createMessage()">
-                        🔥 Burn & Create Link
-                    </button>
-
-                    <!-- Link Result (hidden initially) -->
-                    <div class="link-result" id="linkResult" style="display: none;">
-                        <div class="link-success-header">
-                            <div class="success-checkmark" id="successCheckmark">
-                                <svg viewBox="0 0 52 52">
-                                    <circle cx="26" cy="26" r="25" fill="none" stroke="currentColor" stroke-width="2"/>
-                                    <path fill="none" stroke="currentColor" stroke-width="3" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
-                                </svg>
-                            </div>
-                            <h3>Secret Link Ready</h3>
-                            <p class="link-expire-info" id="linkExpireInfo"></p>
-                        </div>
-
-                        <div class="link-box">
-                            <input type="text" id="linkOutput" readonly class="link-output">
-                            <button class="btn btn-icon" onclick="copyLink()" title="Copy link">
-                                📋
-                            </button>
-                        </div>
-
-                        <div class="link-info">
-                            ⚠️ This link will self-destruct after being viewed. Save it now!
-                        </div>
-
-                        <div class="btn-group">
-                            <button class="btn btn-whatsapp" onclick="shareWhatsApp()">
-                                📱 Share via WhatsApp
-                            </button>
-                        </div>
-                        <div class="btn-group">
-                            <button class="btn btn-danger" onclick="destroyNow()">
-                                💀 Destroy Now
-                            </button>
-                            <button class="btn btn-secondary" onclick="createAnother()">
-                                ✏️ New Message
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Features Grid -->
-                <div class="features-grid">
-                    <div class="feature-item" id="feature-1">
-                        <div class="feature-icon">🔥</div>
-                        <div class="feature-title">Self-Destruct</div>
-                        <div class="feature-desc">Messages vanish after being read</div>
-                    </div>
-                    <div class="feature-item" id="feature-2">
-                        <div class="feature-icon">🔒</div>
-                        <div class="feature-title">Encrypted</div>
-                        <div class="feature-desc">AES-256 end-to-end encryption</div>
-                    </div>
-                    <div class="feature-item" id="feature-3">
-                        <div class="feature-icon">👁️‍🗨️</div>
-                        <div class="feature-title">Zero Knowledge</div>
-                        <div class="feature-desc">We can't read your messages</div>
-                    </div>
-                </div>
-
-                <!-- How It Works -->
-                <div class="how-it-works">
-                    <h3>How it works</h3>
-                    <div class="steps">
-                        <div class="step">
-                            <div class="step-number">1</div>
-                            <div class="step-text">
-                                <strong>Write</strong>
-                                Type your secret message
-                            </div>
-                        </div>
-                        <div class="step">
-                            <div class="step-number">2</div>
-                            <div class="step-text">
-                                <strong>Share</strong>
-                                Send the encrypted link
-                            </div>
-                        </div>
-                        <div class="step">
-                            <div class="step-number">3</div>
-                            <div class="step-text">
-                                <strong>Burn</strong>
-                                Message self-destructs
-                            </div>
-                        </div>
-                    </div>
+            <div class="header__right">
+                <div class="burn-badge" id="burnBadge" title="Messages burned">
+                    <span class="burn-badge__icon">🔥</span>
+                    <span class="burn-badge__count" id="burnCount">0</span>
                 </div>
             </div>
+        </header>
 
-            <!-- ===== VIEW PAGE ===== -->
-            <div class="page" id="page-view">
-                <!-- Loading State -->
-                <div class="card view-card" id="viewLoading" style="display: none;">
-                    <div class="view-icon warning">
-                        <div class="spinner"></div>
+        <!-- Content -->
+        <main class="content">
+
+            <!-- ============ CREATE VIEW ============ -->
+            <section class="view view--create active" id="viewCreate">
+
+                <!-- Hero -->
+                <div class="hero">
+                    <div class="hero__pill">
+                        <span class="hero__pill-dot"></span>
+                        <span>End-to-end encrypted</span>
                     </div>
-                    <h2 class="view-title">Decrypting...</h2>
-                    <p class="view-subtitle">Retrieving your secret message securely</p>
+                    <h1 class="hero__title" id="heroTitle">
+                        <span class="hero__line hero__line--1">Messages that</span>
+                        <span class="hero__line hero__line--2">
+                            <span class="hero__rotating" id="heroRotate">self-destruct</span>
+                        </span>
+                    </h1>
+                    <p class="hero__desc">Write it. Share it. It vanishes after being read — no traces, no logs, no copies.</p>
                 </div>
 
-                <!-- Confirm State -->
-                <div class="card view-card" id="viewConfirm" style="display: none;">
-                    <div class="view-icon warning">🔥</div>
-                    <h2 class="view-title">Secret Message</h2>
-                    <p class="view-subtitle">
-                        This message will <strong>self-destruct</strong> after viewing.
-                        <br>Are you sure you want to reveal it?
-                    </p>
+                <!-- Compose Card -->
+                <div class="compose-card" id="composeCard">
+                    <!-- Card glow border -->
+                    <div class="compose-card__border"></div>
 
-                    <div class="password-area" id="passwordField" style="display: none;">
-                        <input
-                            type="password"
-                            class="form-input"
-                            id="viewPassword"
-                            placeholder="Enter password to unlock"
-                        >
-                    </div>
+                    <div class="compose-card__inner">
+                        <!-- Header -->
+                        <div class="compose-card__head">
+                            <div class="compose-card__icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            </div>
+                            <div>
+                                <h2 class="compose-card__title">Compose Secret</h2>
+                                <p class="compose-card__subtitle">Encrypted before leaving your device</p>
+                            </div>
+                        </div>
 
-                    <button class="btn btn-primary" id="revealBtn" onclick="revealMessage()">
-                        👁️ Reveal Secret Message
-                    </button>
-                </div>
+                        <!-- Textarea -->
+                        <div class="field">
+                            <div class="field__top">
+                                <label class="field__label" for="msgInput">Your message</label>
+                                <span class="field__count" id="charCounter">0 / 10,000</span>
+                            </div>
+                            <div class="field__textarea-wrap">
+                                <textarea class="field__textarea" id="msgInput" placeholder="Type your secret here..." maxlength="10000"></textarea>
+                                <div class="field__char-bar">
+                                    <div class="field__char-fill" id="charBar"></div>
+                                </div>
+                            </div>
+                        </div>
 
-                <!-- Content State -->
-                <div class="card view-card" id="viewContent" style="display: none;">
-                    <div class="view-icon success">✅</div>
-                    <h2 class="view-title">Message Revealed</h2>
-                    <p class="view-subtitle">Read carefully — this won't last.</p>
+                        <!-- Live Cipher -->
+                        <div class="cipher-box" id="cipherBox">
+                            <div class="cipher-box__head">
+                                <span class="cipher-box__dot" id="cipherDot"></span>
+                                <span class="cipher-box__label">AES-256 Cipher Stream</span>
+                            </div>
+                            <div class="cipher-box__text" id="cipherText">awaiting plaintext…</div>
+                        </div>
 
-                    <div class="message-content" id="messageDisplay"></div>
+                        <!-- Password -->
+                        <div class="field">
+                            <div class="field__top">
+                                <label class="field__label" for="pwInput">Password lock</label>
+                                <span class="field__badge">optional</span>
+                            </div>
+                            <div class="field__input-wrap">
+                                <svg class="field__input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                <input type="password" class="field__input" id="pwInput" placeholder="Add password for extra security" autocomplete="new-password">
+                            </div>
+                        </div>
 
-                    <div class="destroyed-notice" id="destroyedNotice" style="display: none;">
-                        🔥 This message has been permanently destroyed
-                    </div>
+                        <!-- Options -->
+                        <div class="options-grid">
+                            <div class="field">
+                                <label class="field__label" for="expirySelect">Self-destruct</label>
+                                <select class="field__select" id="expirySelect">
+                                    <option value="5">5 min</option>
+                                    <option value="30">30 min</option>
+                                    <option value="60">1 hour</option>
+                                    <option value="360">6 hours</option>
+                                    <option value="1440" selected>24 hours</option>
+                                    <option value="10080">7 days</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label class="field__label" for="viewsSelect">Max reads</label>
+                                <select class="field__select" id="viewsSelect">
+                                    <option value="1" selected>1 read</option>
+                                    <option value="3">3 reads</option>
+                                    <option value="5">5 reads</option>
+                                    <option value="10">10 reads</option>
+                                </select>
+                            </div>
+                        </div>
 
-                    <div class="btn-group" style="margin-top: 1.5rem;">
-                        <button class="btn btn-secondary" onclick="showPage('create')">
-                            ✏️ Create Your Own
+                        <!-- Security Score -->
+                        <div class="security-meter" id="securityMeter">
+                            <div class="security-meter__head">
+                                <span class="security-meter__label">Security Score</span>
+                                <span class="security-meter__value" id="secScore">3 / 5</span>
+                            </div>
+                            <div class="security-meter__bar">
+                                <div class="security-meter__fill" id="secFill" style="width: 60%"></div>
+                            </div>
+                            <p class="security-meter__hint" id="secHint">Add a password to maximize security</p>
+                        </div>
+
+                        <!-- Create Button -->
+                        <button class="btn-burn" id="createBtn" onclick="createMessage()">
+                            <span class="btn-burn__text">🔥 Burn & Create Link</span>
+                            <span class="btn-burn__loader" id="createLoader"></span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Not Found State -->
-                <div class="card view-card" id="viewNotFound" style="display: none;">
-                    <div class="view-icon destroyed">💀</div>
-                    <h2 class="view-title">Message Destroyed</h2>
-                    <p class="view-subtitle">
-                        This message has already been viewed and permanently destroyed,
-                        or the link has expired.
-                    </p>
-                    <button class="btn btn-primary" onclick="showPage('create')">
-                        ✏️ Create a New Secret
+                <!-- Result Panel (hidden) -->
+                <div class="result-panel" id="resultPanel">
+                    <div class="result-panel__inner">
+                        <!-- Success Animation -->
+                        <div class="result-check" id="resultCheck">
+                            <svg viewBox="0 0 52 52" class="result-check__svg">
+                                <circle cx="26" cy="26" r="24" fill="none" stroke="currentColor" stroke-width="2"/>
+                                <path fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                            </svg>
+                        </div>
+                        <h3 class="result-panel__title">Link Ready!</h3>
+                        <p class="result-panel__info" id="resultInfo">Self-destructs in 24 hours or after 1 read</p>
+
+                        <!-- Countdown Timer -->
+                        <div class="countdown" id="countdown">
+                            <div class="countdown__block">
+                                <span class="countdown__num" id="cdHours">23</span>
+                                <span class="countdown__unit">hrs</span>
+                            </div>
+                            <span class="countdown__sep">:</span>
+                            <div class="countdown__block">
+                                <span class="countdown__num" id="cdMins">59</span>
+                                <span class="countdown__unit">min</span>
+                            </div>
+                            <span class="countdown__sep">:</span>
+                            <div class="countdown__block">
+                                <span class="countdown__num" id="cdSecs">59</span>
+                                <span class="countdown__unit">sec</span>
+                            </div>
+                        </div>
+
+                        <!-- Link Field -->
+                        <div class="link-field" id="linkField">
+                            <input type="text" class="link-field__input" id="linkOutput" readonly>
+                            <button class="link-field__copy" id="copyBtn" onclick="copyLink()">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            </button>
+                        </div>
+
+                        <!-- QR Code -->
+                        <div class="qr-section" id="qrSection">
+                            <p class="qr-section__label">Scan to open</p>
+                            <div class="qr-section__code" id="qrCode"></div>
+                        </div>
+
+                        <!-- Share Buttons -->
+                        <div class="share-grid">
+                            <button class="share-btn share-btn--wa" onclick="shareWhatsApp()">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                                <span>WhatsApp</span>
+                            </button>
+                            <button class="share-btn share-btn--tg" onclick="shareTelegram()">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                                <span>Telegram</span>
+                            </button>
+                            <button class="share-btn share-btn--email" onclick="shareEmail()">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/></svg>
+                                <span>Email</span>
+                            </button>
+                            <button class="share-btn share-btn--native" onclick="shareNative()" id="nativeShareBtn">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                                <span>Share</span>
+                            </button>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="result-actions">
+                            <button class="action-btn action-btn--destroy" onclick="destroyNow()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                Destroy Now
+                            </button>
+                            <button class="action-btn action-btn--new" onclick="createAnother()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                New Message
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trust Badges -->
+                <div class="trust-row" id="trustRow">
+                    <div class="trust-card">
+                        <div class="trust-card__icon">🔥</div>
+                        <h4 class="trust-card__title">Self-Destruct</h4>
+                        <p class="trust-card__desc">Gone after reading</p>
+                    </div>
+                    <div class="trust-card">
+                        <div class="trust-card__icon">🛡️</div>
+                        <h4 class="trust-card__title">AES-256</h4>
+                        <p class="trust-card__desc">Military encryption</p>
+                    </div>
+                    <div class="trust-card">
+                        <div class="trust-card__icon">🫥</div>
+                        <h4 class="trust-card__title">Zero Knowledge</h4>
+                        <p class="trust-card__desc">We can't read it</p>
+                    </div>
+                </div>
+
+                <!-- Steps -->
+                <div class="steps-row" id="stepsRow">
+                    <h3 class="steps-row__title">How it works</h3>
+                    <div class="steps-row__items">
+                        <div class="step-item">
+                            <div class="step-item__num">1</div>
+                            <div class="step-item__text"><strong>Write</strong><br>Type your secret</div>
+                        </div>
+                        <div class="step-item__arrow">→</div>
+                        <div class="step-item">
+                            <div class="step-item__num">2</div>
+                            <div class="step-item__text"><strong>Share</strong><br>Send the link</div>
+                        </div>
+                        <div class="step-item__arrow">→</div>
+                        <div class="step-item">
+                            <div class="step-item__num">3</div>
+                            <div class="step-item__text"><strong>Burn</strong><br>It self-destructs</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============ VIEW PAGE ============ -->
+            <section class="view view--read" id="viewRead">
+                <!-- Loading -->
+                <div class="read-state active" id="readLoading">
+                    <div class="read-state__icon">
+                        <div class="pulse-ring"></div>
+                        <div class="pulse-ring pulse-ring--2"></div>
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--c-accent)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </div>
+                    <h2>Decrypting</h2>
+                    <p class="read-state__sub">Securely retrieving your message…</p>
+                </div>
+
+                <!-- Confirm Reveal -->
+                <div class="read-state" id="readConfirm">
+                    <div class="read-state__icon read-state__icon--warn">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+                    </div>
+                    <h2>Secret Message Waiting</h2>
+                    <p class="read-state__sub">This message will <strong>self-destruct</strong> after you read it. There are no second chances.</p>
+
+                    <div class="read-pw" id="readPwField" style="display:none;">
+                        <input type="password" class="field__input" id="viewPw" placeholder="Enter password to unlock">
+                    </div>
+
+                    <button class="btn-burn" id="revealBtn" onclick="revealMessage()">
+                        <span class="btn-burn__text">👁️ Reveal Message</span>
                     </button>
                 </div>
-            </div>
+
+                <!-- Message Revealed -->
+                <div class="read-state" id="readContent">
+                    <div class="read-state__icon read-state__icon--ok">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <h2>Message Revealed</h2>
+                    <p class="read-state__sub">Read it carefully — this won't last.</p>
+
+                    <div class="revealed-msg" id="revealedMsg"></div>
+
+                    <div class="destroyed-tag" id="destroyedTag" style="display:none;">
+                        🔥 This message has been permanently destroyed
+                    </div>
+
+                    <button class="action-btn action-btn--new" style="width:100%; margin-top:1.5rem;" onclick="goHome()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Create Your Own Secret
+                    </button>
+                </div>
+
+                <!-- Not Found -->
+                <div class="read-state" id="readGone">
+                    <div class="read-state__icon read-state__icon--dead">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                    </div>
+                    <h2>Message Destroyed</h2>
+                    <p class="read-state__sub">This message has already been viewed and permanently destroyed, or the link has expired.</p>
+
+                    <button class="btn-burn" onclick="goHome()">
+                        <span class="btn-burn__text">✏️ Create a New Secret</span>
+                    </button>
+                </div>
+            </section>
+
         </main>
 
         <!-- Footer -->
         <footer class="footer">
-            BurNote — Messages that vanish. Privacy that stays. 🔥
+            <p>BurNote — Messages that vanish. Privacy that stays. 🔥</p>
         </footer>
 
     </div>
 
-    <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer"></div>
+    <!-- Toast Container (bottom on mobile) -->
+    <div class="toast-rack" id="toastRack"></div>
 
     <script src="/app.js"></script>
 </body>
