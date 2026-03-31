@@ -36,19 +36,26 @@ function saveMessages() {
 const messages = loadMessages();
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ====== Create a new secret message ======
 app.post('/api/messages', (req, res) => {
-    const { content, password, expiresIn, maxViews } = req.body;
+    const { content, password, expiresIn, maxViews, attachment } = req.body;
 
-    if (!content || content.trim().length === 0) {
-        return res.status(400).json({ error: 'Message content is required' });
+    if ((!content || content.trim().length === 0) && !attachment) {
+        return res.status(400).json({ error: 'Message or attachment is required' });
     }
 
-    if (content.length > 10000) {
+    if (content && content.length > 10000) {
         return res.status(400).json({ error: 'Message too long (max 10,000 characters)' });
+    }
+
+    // Validate attachment if present (max 5MB base64)
+    if (attachment) {
+        if (attachment.length > 7 * 1024 * 1024) {
+            return res.status(400).json({ error: 'Image too large (max 5MB)' });
+        }
     }
 
     const id = uuidv4();
@@ -58,18 +65,26 @@ app.post('/api/messages', (req, res) => {
     const expiresAt = now + (expirationMinutes * 60 * 1000);
 
     const encryptionKey = password || id;
-    const encrypted = CryptoJS.AES.encrypt(content, encryptionKey).toString();
+    const encrypted = CryptoJS.AES.encrypt(content || '', encryptionKey).toString();
+
+    // Encrypt attachment separately if present
+    let encryptedAttachment = null;
+    if (attachment) {
+        encryptedAttachment = CryptoJS.AES.encrypt(attachment, encryptionKey).toString();
+    }
 
     messages.set(id, {
         content: encrypted,
+        attachment: encryptedAttachment,
         hasPassword: !!password,
+        hasAttachment: !!attachment,
         expiresAt,
         maxViews: maxViews || 1,
         viewCount: 0,
         createdAt: now
     });
 
-    saveMessages(); // Save to file
+    saveMessages();
 
     const protocol = req.get('x-forwarded-proto') || req.protocol;
     const host = req.get('x-forwarded-host') || req.get('host');
@@ -79,7 +94,8 @@ app.post('/api/messages', (req, res) => {
         id,
         link,
         expiresAt: new Date(expiresAt).toISOString(),
-        hasPassword: !!password
+        hasPassword: !!password,
+        hasAttachment: !!attachment
     });
 });
 
@@ -126,8 +142,17 @@ app.post('/api/messages/:id/reveal', (req, res) => {
         const decrypted = CryptoJS.AES.decrypt(message.content, decryptionKey);
         const content = decrypted.toString(CryptoJS.enc.Utf8);
 
-        if (!content) {
+        if (!content && !message.attachment) {
             return res.status(403).json({ error: 'Invalid password' });
+        }
+
+        // Decrypt attachment if present
+        let attachment = null;
+        if (message.attachment) {
+            try {
+                const decryptedAtt = CryptoJS.AES.decrypt(message.attachment, decryptionKey);
+                attachment = decryptedAtt.toString(CryptoJS.enc.Utf8);
+            } catch (e) { /* ignore attachment decrypt failure */ }
         }
 
         message.viewCount++;
@@ -136,10 +161,11 @@ app.post('/api/messages/:id/reveal', (req, res) => {
             messages.delete(id);
         }
 
-        saveMessages(); // Save after view/destroy
+        saveMessages();
 
         res.json({
             content,
+            attachment,
             destroyed: message.viewCount >= message.maxViews,
             viewCount: message.viewCount,
             maxViews: message.maxViews

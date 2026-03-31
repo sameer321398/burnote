@@ -9,6 +9,7 @@ let messageId = null;
 let messageLink = null;
 let messageExpiresAt = null;
 let countdownTimer = null;
+let currentAttachment = null;
 let burnCount = parseInt(localStorage.getItem('bn_burns') || '0');
 
 // ——— Loaded ———
@@ -55,6 +56,33 @@ document.addEventListener('DOMContentLoaded', () => {
     // Enter on view password
     const viewPw = document.getElementById('viewPw');
     if (viewPw) viewPw.addEventListener('keydown', e => { if (e.key === 'Enter') revealMessage(); });
+
+    // File upload events
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('uploadZone');
+    
+    if (fileInput) {
+        fileInput.addEventListener('change', handleFileSelect);
+    }
+    
+    if (dropZone) {
+        dropZone.addEventListener('dragover', e => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        dropZone.addEventListener('dragleave', e => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+        });
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                document.getElementById('fileInput').files = e.dataTransfer.files;
+                handleFileSelect();
+            }
+        });
+    }
 
     // Initial security calc
     calcSecurityScore();
@@ -275,6 +303,53 @@ function goHome() {
     createAnother();
 }
 
+// ——— File Upload ———
+function handleFileSelect() {
+    const fileInput = document.getElementById('fileInput');
+    const file = fileInput.files[0];
+    
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+        toast('Only images (PNG, JPG, GIF, WEBP) are allowed', 'err');
+        fileInput.value = '';
+        return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast('Image is too large! Maximum allowed size is 5MB.', 'err');
+        fileInput.value = '';
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        currentAttachment = e.target.result;
+        
+        // Show preview
+        document.getElementById('uploadEmpty').style.display = 'none';
+        document.getElementById('uploadPreview').style.display = 'flex';
+        document.getElementById('previewImg').src = currentAttachment;
+        document.getElementById('fileName').textContent = file.name;
+        
+        // Format file size
+        const sizeKB = Math.round(file.size / 1024);
+        const sizeText = sizeKB > 1024 ? (sizeKB / 1024).toFixed(1) + ' MB' : sizeKB + ' KB';
+        document.getElementById('fileSize').textContent = sizeText;
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeAttachment() {
+    currentAttachment = null;
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) fileInput.value = '';
+    const preview = document.getElementById('uploadPreview');
+    const empty = document.getElementById('uploadEmpty');
+    if (preview) preview.style.display = 'none';
+    if (empty) empty.style.display = 'flex';
+}
+
 // ——— Create Message ———
 async function createMessage() {
     const content = document.getElementById('msgInput').value.trim();
@@ -282,11 +357,17 @@ async function createMessage() {
     const expiresIn = parseInt(document.getElementById('expirySelect').value);
     const maxViews = parseInt(document.getElementById('viewsSelect').value);
 
-    if (!content) {
-        toast('Write a message first!', 'err');
+    if (!content && !currentAttachment) {
+        toast('Write a message or attach an image!', 'err');
         shake(document.getElementById('msgInput'));
         document.getElementById('msgInput').focus();
         return;
+    }
+
+    // Double check size of payload to prevent silent fails
+    if (currentAttachment && currentAttachment.length > 7 * 1024 * 1024) {
+         toast('Attachment is too large. Please choose a smaller image.', 'err');
+         return;
     }
 
     const btn = document.getElementById('createBtn');
@@ -297,7 +378,13 @@ async function createMessage() {
         const res = await fetch('/api/messages', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ content, password, expiresIn, maxViews })
+            body: JSON.stringify({ 
+                content, 
+                password, 
+                expiresIn, 
+                maxViews,
+                attachment: currentAttachment
+            })
         });
 
         const data = await res.json();
@@ -451,6 +538,8 @@ function createAnother() {
     document.getElementById('charBar').style.width = '0%';
     document.getElementById('composeCard').style.display = '';
     document.getElementById('resultPanel').classList.remove('show');
+    
+    removeAttachment();
 
     const cBox = document.getElementById('cipherBox');
     cBox.classList.remove('active');

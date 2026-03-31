@@ -99,6 +99,17 @@
             white-space: pre-wrap;
         }
 
+        .msg-img {
+            display: none;
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            margin-top: 20px;
+            border: 1px solid rgba(255,255,255,0.06);
+            object-fit: contain;
+            max-height: 60vh;
+        }
+
         /* ——— Sensors (mobile) ——— */
         .sensor-area {
             position: fixed;
@@ -273,6 +284,7 @@
         <div class="main-area">
             <div class="msg-card" id="msgCard">
                 <div class="msg-text" id="msgText"></div>
+                <img id="msgImg" class="msg-img" alt="Attached Secret">
             </div>
         </div>
         <div class="sensor-area" id="sensorArea" style="display:none;">
@@ -393,7 +405,19 @@
                     if (data.error?.includes('password')) { show('statePw'); return; }
                     show('stateGone'); return;
                 }
-                msgText.textContent = data.content;
+                
+                if (data.content) {
+                    msgText.textContent = data.content;
+                } else {
+                    msgText.style.display = 'none';
+                }
+
+                if (data.attachment) {
+                    const img = document.getElementById('msgImg');
+                    img.src = data.attachment;
+                    img.style.display = 'block';
+                }
+                
                 loaded = true;
                 show('stateMsg');
                 if (isTouch) document.getElementById('sensorArea').style.display = 'flex';

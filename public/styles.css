@@ -629,6 +629,143 @@ body {
     color: rgba(255,107,53,0.65);
 }
 
+/* ——— Upload Zone ——— */
+.upload-zone {
+    margin-bottom: 1.15rem;
+    border-radius: var(--r-md);
+    overflow: hidden;
+}
+
+.upload-zone__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1.2rem 1rem;
+    border: 1.5px dashed rgba(255,255,255,0.08);
+    border-radius: var(--r-md);
+    background: rgba(0,0,0,0.15);
+    cursor: pointer;
+    transition: all 0.25s var(--ease);
+    -webkit-tap-highlight-color: transparent;
+    text-align: center;
+}
+
+.upload-zone__empty:hover,
+.upload-zone.dragover .upload-zone__empty {
+    border-color: rgba(255,107,53,0.35);
+    background: rgba(255,107,53,0.04);
+}
+
+.upload-zone__icon {
+    color: var(--c-text3);
+    transition: color 0.2s;
+}
+
+.upload-zone__empty:hover .upload-zone__icon {
+    color: var(--c-accent);
+}
+
+.upload-zone__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.upload-zone__cta {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--c-text2);
+}
+
+.upload-zone__hint {
+    font-size: 0.65rem;
+    color: var(--c-text3);
+}
+
+.upload-zone__formats {
+    display: flex;
+    gap: 0.35rem;
+    margin-top: 0.15rem;
+}
+
+.format-badge {
+    font-size: 0.55rem;
+    font-weight: 600;
+    padding: 0.15rem 0.45rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: var(--r-full);
+    color: var(--c-text3);
+    letter-spacing: 0.5px;
+}
+
+/* Preview */
+.upload-zone__preview {
+    position: relative;
+    padding: 0.65rem;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,107,53,0.12);
+    border-radius: var(--r-md);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.upload-zone__img {
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.06);
+}
+
+.upload-zone__info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.upload-zone__filename {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--c-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.upload-zone__filesize {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--c-text3);
+}
+
+.upload-zone__remove {
+    all: unset;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: 50%;
+    background: rgba(239,68,68,0.1);
+    color: var(--c-red);
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.upload-zone__remove:hover,
+.upload-zone__remove:active {
+    background: rgba(239,68,68,0.2);
+    transform: scale(1.1);
+}
+
 /* ——— Security Meter ——— */
 .security-meter {
     margin-bottom: 1.25rem;
