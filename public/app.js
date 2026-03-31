@@ -41,6 +41,26 @@ document.addEventListener('DOMContentLoaded', () => {
         msg.addEventListener('input', onMessageInput);
         msg.addEventListener('focus', () => document.getElementById('composeCard')?.classList.add('focus'));
         msg.addEventListener('blur', () => document.getElementById('composeCard')?.classList.remove('focus'));
+        
+        // Handle image/GIF paste from clipboard
+        msg.addEventListener('paste', e => {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let item of items) {
+                if (item.type.indexOf('image/') === 0) {
+                    const file = item.getAsFile();
+                    if (file) {
+                        e.preventDefault();
+                        const dt = new DataTransfer();
+                        dt.items.add(file);
+                        const fileInput = document.getElementById('fileInput');
+                        if (fileInput) {
+                            fileInput.files = dt.files;
+                            handleFileSelect();
+                        }
+                    }
+                }
+            }
+        });
     }
 
     // Password input — update security score
